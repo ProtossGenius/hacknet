@@ -1,0 +1,16 @@
+syntax = "proto3";
+option java_package = "pb";
+option java_outer_classname="smn_dict";
+option go_package = "github.com/ProtossGenius/hacknet/pb/smn_dict;smn_dict";
+package smn_dict;
+
+enum EDict{
+	None = 0;
+	//cc_. = 1;
+	cc_HackIn = 2;
+	cs_HeartJump = 3;
+	cs_Register = 4;
+	cs_AskHack = 5;
+	sc_AnsHack = 6;
+	ss_Search = 7;
+}

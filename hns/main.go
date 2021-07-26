@@ -9,11 +9,11 @@ import (
 )
 
 func main() {
-	var p int
-
-	flag.IntVar(&p, "p", 9981, "port")
+	port := 9981
+	flag.IntVar(&port, "p", port, "port")
 	flag.Parse()
-	listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4zero, Port: p})
+
+	listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4zero, Port: port})
 	if err != nil {
 		fmt.Println(err)
 		return

@@ -1,0 +1,16 @@
+//sc.proto server to client's protocol.
+
+syntax = "proto3";
+option java_package = "com.suremoon.hacknet.pb";
+option java_outer_classname="S2C";
+option go_package = "github.com/ProtossGenius/hacknet/pb/sc;sc";
+package sc;
+
+// AnsHack answer hack.
+message AnsHack {
+	bool   suc = 1; // is ask success.
+	string ip = 2;
+	int32 port = 3;
+	// Next available id: 1
+}
+

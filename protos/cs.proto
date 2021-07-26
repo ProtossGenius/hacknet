@@ -1,0 +1,25 @@
+//cs.proto client to server's protocol.
+
+syntax = "proto3";
+option java_package = "com.suremoon.hacknet.pb";
+option java_outer_classname="C2S";
+option go_package = "github.com/ProtossGenius/hacknet/pb/cs;cs";
+package cs;
+
+// Register register this client to server.
+message Register {
+	string email = 1;
+	//  string pubKey = 2; // maybe will do this in future.
+}
+
+// AskHack ask connect another client.
+message AskHack {
+	string email = 1;
+	// TODO: another things in future.
+}
+
+// HeartJump heart jump just for keep alive.
+message HeartJump {
+}
+
+

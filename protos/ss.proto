@@ -1,0 +1,12 @@
+// ss.proto the proto for server-server
+
+syntax = "proto3";
+option java_package = "com.suremoon.hacknet.pb";
+option java_outer_classname="S2S";
+option go_package = "github.com/ProtossGenius/hacknet/pb/ss;ss";
+package ss;
+
+// Search server's search protocol.
+message Search {
+	string type = 1;
+}
