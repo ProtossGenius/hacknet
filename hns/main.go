@@ -29,7 +29,6 @@ func main() {
 		log.Printf("<%s> %s\n", remoteAddr.String(), data[:n])
 		peers = append(peers, *remoteAddr)
 		if len(peers) == 2 {
-
 			log.Printf("进行UDP打洞,建立 %s <--> %s 的连接\n", peers[0].String(), peers[1].String())
 			listener.WriteToUDP([]byte(peers[1].String()), &peers[0])
 			listener.WriteToUDP([]byte(peers[0].String()), &peers[1])

@@ -10,7 +10,8 @@ import (
 	"time"
 )
 
-const HAND_SHAKE_MSG = "我是打洞消息"
+// HandShakeMsg hand shake msg.
+const HandShakeMsg = "我是打洞消息"
 
 var tag string
 
@@ -64,7 +65,7 @@ func bidirectionHole(srcAddr *net.UDPAddr, anotherAddr *net.UDPAddr) {
 	}
 	defer conn.Close()
 	// 向另一个peer发送一条udp消息(对方peer的nat设备会丢弃该消息,非法来源),用意是在自身的nat设备打开一条可进入的通道,这样对方peer就可以发过来udp消息
-	if _, err = conn.Write([]byte(HAND_SHAKE_MSG)); err != nil {
+	if _, err = conn.Write([]byte(HandShakeMsg)); err != nil {
 		log.Println("send handshake:", err)
 	}
 	go func() {
