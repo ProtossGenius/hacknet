@@ -1,6 +1,7 @@
 package pinfo
 
 import (
+	"net"
 	"time"
 )
 
@@ -26,19 +27,17 @@ type BanInfo struct {
 
 // PointInfo point info.
 type PointInfo struct {
-	Email  string
-	PubKey string
-	IP     string
-	Port   int
-	Status HackerStatus
-	BanInf *BanInfo // nil or ban.
+	Email      string
+	PubKey     string
+	Status     HackerStatus
+	HackerAddr *net.UDPAddr
+	BanInf     *BanInfo // nil or ban.
 }
 
 // PointInfoMgrItf point info manager interface.
 type PointInfoMgrItf interface {
-	Find(email string) *PointInfo
-	// Register return nil means has exist.
-	Register(email, ip, pubKey string, port int, status HackerStatus) *PointInfo
+	// HackerJoin .
+	HackerJoin(udpAddr *net.UDPAddr, email, pubKey string) *PointInfo
 	// BanEmail ban an email how many sec by what reason.
 	BanEmail(email, reason string, sec int)
 	// BanIp ban an ip how many sec by what reason.
