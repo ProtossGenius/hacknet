@@ -5,6 +5,41 @@ import (
 	"time"
 )
 
+// HackerStatus hacker point's status.
+type HackerStatus int
+
+/*@SMIST
+setIgnoreInput(true)
+var status = {
+	HackerStatusLive : "hacker live",
+	HackerStatusDead : "Hacker dead(not on line)",
+	HackerStatusBan  : "hacker has been ban",
+	HackerStatusReadCheckEmail : "ready to check email"
+}
+var first = true;
+for (let key in status) {
+	write("\t " + status[key] + ".\n");
+	write("\t" + key);
+	if (first) {
+		write(" = iota");
+		first = false;
+	}
+	write("\n");
+}
+//.
+*/
+
+const (
+	// HackerStatusLive live.
+	HackerStatusLive HackerStatus = iota
+	// HackerStatusDead dead.
+	HackerStatusDead
+	// HackerStatusBan ban.
+	HackerStatusBan
+	// HackerStatusReadCheckEmail ready to check email.
+	HackerStatusReadCheckEmail
+)
+
 // BanInfo ban infos.
 type BanInfo struct {
 	Reason          string

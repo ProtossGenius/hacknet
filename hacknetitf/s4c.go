@@ -14,12 +14,9 @@ type s4cImpl struct {
 
 // AcceptHacker Hacker ask for login. extraData is hacker's detail info.
 func (s *s4cImpl) AcceptHacker(udpAddr *net.UDPAddr, email string, extraData string) (result string) {
-	point := s.pointInfoMgr.Register(email, udpAddr.IP.String(), extraData, udpAddr.Port, pinfo.HackerStatusLive)
-	if point == nil {
-		point = s.pointInfoMgr.Find(email)
-	}
+	point := s.pointInfoMgr.HackerJoin(udpAddr, email, extraData)
 
-	return ""
+	return point.StatusJson()
 }
 
 // Hack connect to another Hacker's computer.
