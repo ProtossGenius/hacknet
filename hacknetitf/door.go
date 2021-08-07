@@ -7,7 +7,7 @@ type ServerForClientItf interface {
 	// AcceptHacker Hacker ask for login. extraData is hacker's detail info.
 	AcceptHacker(hackerAddr *net.UDPAddr, email, extraData string) (result string)
 	// Hack connect to another Hacker's computer.
-	Hack(hackerEmail, hackerHost, targetEmail, extraData string) (result string)
+	Hack(hackerEmail string, hackerAddr *net.UDPAddr, targetEmail, extraData string) (result string)
 }
 
 // ServerForClientFactory product server for client.

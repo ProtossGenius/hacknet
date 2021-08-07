@@ -17,7 +17,7 @@ func (p *pointInfoMgrByMemory) IsIPCanUse(ip string) (canUse bool) {
 	return true
 }
 
-func (p *pointInfoMgrByMemory) Find(email string) *PointInfo {
+func (p *pointInfoMgrByMemory) FindHacker(email string) *PointInfo {
 	return p.infoMap[email]
 }
 

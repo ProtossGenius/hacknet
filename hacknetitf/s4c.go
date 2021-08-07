@@ -6,6 +6,11 @@ import (
 	"github.com/ProtossGenius/hacknet/pinfo"
 )
 
+const (
+	// ErrNoSuchHacker can't found this hacker by email.
+	ErrNoSuchHacker = "ErrNoSuchHacker"
+)
+
 // s4cImpl ServerForClientItf's impl.
 type s4cImpl struct {
 	pointInfoMgr pinfo.PointInfoMgrItf
@@ -16,12 +21,18 @@ type s4cImpl struct {
 func (s *s4cImpl) AcceptHacker(udpAddr *net.UDPAddr, email string, extraData string) (result string) {
 	point := s.pointInfoMgr.HackerJoin(udpAddr, email, extraData)
 
-	return point.StatusJson()
+	return pinfo.GetHackerStatusName(point.Status)
 }
 
 // Hack connect to another Hacker's computer.
-func (s *s4cImpl) Hack(hackerEmail string, hackerHost string, targetEmail string, extraData string) (result string) {
-	panic("not implemented") // TODO: Implement
+func (s *s4cImpl) Hack(hackerEmail string, hackerAddr *net.UDPAddr, targetEmail string,
+	extraData string) (result string) {
+	hacker := s.pointInfoMgr.FindHacker(hackerEmail)
+	if hacker == nil {
+		return ErrNoSuchHacker
+	}
+
+	return ""
 }
 
 func check(err error) {

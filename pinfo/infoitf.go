@@ -24,6 +24,9 @@ type PointInfo struct {
 type PointInfoMgrItf interface {
 	// HackerJoin .
 	HackerJoin(udpAddr *net.UDPAddr, email, pubKey string) *PointInfo
+	// FindHacker find hacker.
+	FindHacker(email string) *PointInfo
+
 	// BanEmail ban an email how many sec by what reason.
 	BanEmail(email, reason string, sec int)
 	// BanIp ban an ip how many sec by what reason.
