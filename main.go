@@ -1,7 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"github.com/ProtossGenius/hacknet/hnlog"
+	"github.com/sirupsen/logrus"
+)
 
 func main() {
-	fmt.Println("vim-go")
+	hnlog.Warn("haha", logrus.Fields{})
 }

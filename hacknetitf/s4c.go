@@ -35,6 +35,16 @@ func (s *s4cImpl) Hack(hackerEmail string, hackerAddr *net.UDPAddr, targetEmail 
 	return ""
 }
 
+func (s *s4cImpl) startUp() {
+	bytes := make([]byte, 1024*1024)
+	for {
+		n, remoteAddr, err := s.binder.ReadFromUDP(bytes)
+		if err != nil {
+
+		}
+	}
+}
+
 func check(err error) {
 	if err != nil {
 		panic(err)
@@ -49,6 +59,8 @@ func news4c(port int) ServerForClientItf {
 	res.binder, err = net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4zero, Port: port, Zone: ""})
 
 	check(err)
+
+	go res.startUp()
 
 	return res
 }

@@ -13,8 +13,10 @@ require (
 	github.com/jmoiron/sqlx v1.2.1-0.20190826204134-d7d95172beb5 // indirect
 	github.com/sclevine/agouti v3.0.0+incompatible // indirect
 	github.com/shirou/gopsutil v0.0.0-20190901111213-e4ec7b275ada // indirect
+	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/tommy-muehle/go-mnd v1.3.1-0.20200224220436-e6f9a994e8fa // indirect
 	github.com/ugorji/go v1.1.4 // indirect
+	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069 // indirect
 	google.golang.org/protobuf v1.27.1
 	sourcegraph.com/sqs/pbtypes v0.0.0-20180604144634-d3ebe8f20ae4 // indirect
 )
