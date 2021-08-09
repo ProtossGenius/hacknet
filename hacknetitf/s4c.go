@@ -3,7 +3,9 @@ package hacknetitf
 import (
 	"net"
 
+	"github.com/ProtossGenius/hacknet/hnlog"
 	"github.com/ProtossGenius/hacknet/pinfo"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -36,12 +38,16 @@ func (s *s4cImpl) Hack(hackerEmail string, hackerAddr *net.UDPAddr, targetEmail 
 }
 
 func (s *s4cImpl) startUp() {
-	bytes := make([]byte, 1024*1024)
+	bytes := make([]byte, 1024)
 	for {
 		n, remoteAddr, err := s.binder.ReadFromUDP(bytes)
 		if err != nil {
-
+			hnlog.Error(err.Error(), logrus.Fields{})
+			continue
 		}
+		hnlog.Info("accept data", logrus.Fields{"remoteAddr": remoteAddr, "readSize": n, "message": bytes[0:n]})
+
+		// TODO: decode to protoc and do something.
 	}
 }
 

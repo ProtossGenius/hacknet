@@ -40,6 +40,6 @@ func Warn(info string, fields logrus.Fields) {
 }
 
 // Error write error log.
-func Error(info string, fields logrus.Fields) {
-	logTime().WithFields(fields).Errorln()
+func Error(info string, fields map[string]interface{}) {
+	logTime().WithFields(fields).Errorln(info)
 }
