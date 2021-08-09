@@ -1,0 +1,13 @@
+syntax = "proto3";
+option java_package = "com.suremoon.hacknet.pb";
+option java_outer_classname="hmsg";
+option go_package = "github.com/ProtossGenius/hacknet/pb/hmsg;hmsg";
+package hmsg;
+
+// Message BaseMessage.
+message Message {
+	int32 Enum = 1;
+	string msg = 2;
+
+	// Next available id: 1
+}

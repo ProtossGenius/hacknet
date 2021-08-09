@@ -13,4 +13,5 @@ enum EDict{
 	cs_AskHack = 5;
 	sc_AnsHack = 6;
 	ss_Search = 7;
+	hmsg_Message = 9;
 }
