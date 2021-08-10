@@ -70,9 +70,9 @@ func (s *s4cImpl) dealPackage(data []byte, remoteAddr *net.UDPAddr, err error) (
 	}
 
 	switch msg.Enum {
-	case int32(smn_dict.EDict_sc_AnsHack):
-		ansHackMsg := new(sc.AnsHack)
-		err = proto.Unmarshal([]byte(msg.Msg), ansHackMsg)
+	case int32(smn_dict.EDict_cs_Register):
+		registerMsg := new(sc.AnsHack)
+		err = proto.Unmarshal([]byte(msg.Msg), registerMsg)
 
 		if err != nil {
 			return "unmarshal msg.Msg", details{"msg.Enum": smn_dict.EDict_sc_AnsHack, "msg.Msg": msg.Msg}, wrapError(err)
