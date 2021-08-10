@@ -9,7 +9,7 @@ import (
 // ServerForClientItf server for client.
 type ServerForClientItf interface {
 	// AcceptHacker Hacker ask for login. extraData is hacker's detail info.
-	AcceptHacker(hackerAddr *net.UDPAddr, email, extraData string) (result string)
+	HackerJoin(hackerAddr *net.UDPAddr, email, extraData string) (result string)
 	// Hack connect to another Hacker's computer.
 	Hack(hacker *pinfo.PointInfo, targetEmail, extraData string) (result string)
 }

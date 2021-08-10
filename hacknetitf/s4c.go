@@ -29,7 +29,7 @@ type s4cImpl struct {
 }
 
 // AcceptHacker Hacker ask for login. extraData is hacker's detail info.
-func (s *s4cImpl) AcceptHacker(udpAddr *net.UDPAddr, email string, extraData string) (result string) {
+func (s *s4cImpl) HackerJoin(udpAddr *net.UDPAddr, email string, extraData string) (result string) {
 	point := s.pointInfoMgr.HackerJoin(udpAddr, email, extraData)
 
 	return pinfo.GetHackerStatusName(point.Status)
