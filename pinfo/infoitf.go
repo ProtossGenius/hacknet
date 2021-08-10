@@ -22,7 +22,7 @@ type PointInfo struct {
 
 // PointInfoMgrItf point info manager interface.
 type PointInfoMgrItf interface {
-	// HackerJoin .
+	// HackerJoin register.
 	HackerJoin(udpAddr *net.UDPAddr, email, pubKey string) *PointInfo
 	// FindHacker find hacker.
 	FindHacker(email string) *PointInfo

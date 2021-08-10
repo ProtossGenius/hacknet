@@ -1,13 +1,17 @@
 package hacknetitf
 
-import "net"
+import (
+	"net"
+
+	"github.com/ProtossGenius/hacknet/pinfo"
+)
 
 // ServerForClientItf server for client.
 type ServerForClientItf interface {
 	// AcceptHacker Hacker ask for login. extraData is hacker's detail info.
 	AcceptHacker(hackerAddr *net.UDPAddr, email, extraData string) (result string)
 	// Hack connect to another Hacker's computer.
-	Hack(hackerEmail string, hackerAddr *net.UDPAddr, targetEmail, extraData string) (result string)
+	Hack(hacker *pinfo.PointInfo, targetEmail, extraData string) (result string)
 }
 
 // ServerForClientFactory product server for client.
