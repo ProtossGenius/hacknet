@@ -146,8 +146,7 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 	default:
 		return "unknow Enum", details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(errors.New(ErrUnexceptEnum))
 	}
-	
-/* @SMIST setIgnoreInput(false);*/
+	/* @SMIST setIgnoreInput(false);*/
 	return "", nil, nil
 }
 

@@ -23,7 +23,6 @@ type ServerForClientItf interface {
 	// HeartJump heart jump just for keep alive.
 	HeartJump(email string, hackerAddr *net.UDPAddr, msg *cs.HeartJump) (*proto.Message, map[string]interface{}, error)
 }
-
 // @SMIST setIgnoreInput(false)
 
 // ServerForClientFactory product server for client.
