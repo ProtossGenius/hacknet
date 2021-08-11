@@ -8,13 +8,11 @@ package cs;
 
 // Register register this client to server.
 message Register {
-	string email = 1;
 	string pubKey = 2; 
 }
 
 // CheckEmail check if email belong to register.
 message CheckEmail {
-	string email = 1;
 	string code = 2;	
 
 	// Next available id: 1
@@ -22,7 +20,6 @@ message CheckEmail {
 
 // AskHack ask connect another client.
 message AskHack {
-	string email = 1;
 	string target = 2; // target hacker's email.
 	string extra = 3; // extra data, for check or anything.
 	// TODO: another things in future.
@@ -30,7 +27,6 @@ message AskHack {
 
 // HeartJump heart jump just for keep alive.
 message HeartJump {
-	string email = 1;
 }
 
 

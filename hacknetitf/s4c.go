@@ -28,11 +28,24 @@ type s4cImpl struct {
 	binder       *net.UDPConn
 }
 
-// AcceptHacker Hacker ask for login. extraData is hacker's detail info.
-func (s *s4cImpl) HackerJoin(udpAddr *net.UDPAddr, email string, extraData string) (result string) {
-	point := s.pointInfoMgr.HackerJoin(udpAddr, email, extraData)
+// Register register this client to server.
+func (s *s4cImpl) Register(email string, hackerAddr *net.UDPAddr, msg *cs.Register) (*proto.Message, map[string]interface{}, error) {
+	panic("not implemented") // TODO: Implement
+}
 
-	return pinfo.GetHackerStatusName(point.Status)
+// CheckEmail check if email belong to register.
+func (s *s4cImpl) CheckEmail(email string, hackerAddr *net.UDPAddr, msg *cs.CheckEmail) (*proto.Message, map[string]interface{}, error) {
+	panic("not implemented") // TODO: Implement
+}
+
+// AskHack ask connect another client.
+func (s *s4cImpl) AskHack(email string, hackerAddr *net.UDPAddr, msg *cs.AskHack) (*proto.Message, map[string]interface{}, error) {
+	panic("not implemented") // TODO: Implement
+}
+
+// HeartJump heart jump just for keep alive.
+func (s *s4cImpl) HeartJump(email string, hackerAddr *net.UDPAddr, msg *cs.HeartJump) (*proto.Message, map[string]interface{}, error) {
+	panic("not implemented") // TODO: Implement
 }
 
 // Hack connect to another Hacker's computer.
@@ -61,11 +74,16 @@ type details map[string]interface{}
 // MaxPackageSize udp package's max size.
 const MaxPackageSize = 1024
 
+func (s *s4cImpl) write(email string, hackerAddr *net.UDPAddr, msg *proto.Message) {
+}
+
 func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 	hackerInfo *pinfo.PointInfo) (string, details, error) {
 	wrapError := func(err error) error {
 		return fmt.Errorf("s4cImpl.dealPackage, Error : %w", err)
 	}
+
+	var err error
 
 	hnlog.Info("accept data", logrus.Fields{"remoteAddr": hackerAddr, "message": msg, "hackerInfo": hackerInfo})
 
@@ -73,24 +91,63 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 		return "check hackerInfo, not exist", details{"email": msg.Email}, errors.New(ErrNoSuchHacker)
 	}
 
+	// @SMIST include("parseProtos.js"); proto2GoSwitch("./protos/cs.proto", 1)
+	const UnmarshalMsgMsg = "Unmarshal msg.Msg"
+
+	var _resp *proto.Message
+
+	var detail details
+
 	switch msg.Enum {
 	case int32(smn_dict.EDict_cs_Register):
-		registerMsg := new(cs.Register)
-		if err := proto.Unmarshal([]byte(msg.Msg), registerMsg); err != nil {
-			return "unmarshal msg.Msg", details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
+		_subMsg := new(cs.Register)
+		if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {
+			return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
 		}
 
-		s.AcceptHacker(hackerAddr, registerMsg.Email, registerMsg.PubKey)
+		if _resp, detail, err = s.Register(msg.Email, hackerAddr, _subMsg); err != nil {
+			return "s.Register", detail, wrapError(err)
+		}
+
+		s.write(msg.Email, hackerAddr, _resp)
+	case int32(smn_dict.EDict_cs_CheckEmail):
+		_subMsg := new(cs.CheckEmail)
+		if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {
+			return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
+		}
+
+		if _resp, detail, err = s.CheckEmail(msg.Email, hackerAddr, _subMsg); err != nil {
+			return "s.CheckEmail", detail, wrapError(err)
+		}
+
+		s.write(msg.Email, hackerAddr, _resp)
 	case int32(smn_dict.EDict_cs_AskHack):
-		askHackMsg := new(cs.AskHack)
-		if err := proto.Unmarshal([]byte(msg.Msg), askHackMsg); err != nil {
-			return "unmarshal msg.Msg", details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
+		_subMsg := new(cs.AskHack)
+		if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {
+			return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
 		}
 
+		if _resp, detail, err = s.AskHack(msg.Email, hackerAddr, _subMsg); err != nil {
+			return "s.AskHack", detail, wrapError(err)
+		}
+
+		s.write(msg.Email, hackerAddr, _resp)
+	case int32(smn_dict.EDict_cs_HeartJump):
+		_subMsg := new(cs.HeartJump)
+		if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {
+			return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
+		}
+
+		if _resp, detail, err = s.HeartJump(msg.Email, hackerAddr, _subMsg); err != nil {
+			return "s.HeartJump", detail, wrapError(err)
+		}
+
+		s.write(msg.Email, hackerAddr, _resp)
 	default:
 		return "unknow Enum", details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(errors.New(ErrUnexceptEnum))
 	}
-
+	
+/* @SMIST setIgnoreInput(false);*/
 	return "", nil, nil
 }
 

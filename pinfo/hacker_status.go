@@ -4,7 +4,7 @@ package pinfo
 
 /*@SMIST
 setIgnoreInput(true)
-include("meta_data/js/createConsts.js")
+include("createConsts.js")
 createConsts("HackerStatus", "hacker point's status", {
 	HackerStatusLive : "hacker live",
 	HackerStatusDead : "Hacker dead(not on line)",
