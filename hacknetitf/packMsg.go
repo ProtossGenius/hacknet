@@ -4,6 +4,7 @@ package hacknetitf
 import (
 	"github.com/ProtossGenius/hacknet/pb/cs"
 	"github.com/ProtossGenius/hacknet/pb/hmsg"
+	"github.com/ProtossGenius/hacknet/pb/sc"
 	"github.com/ProtossGenius/hacknet/pb/smn_dict"
 	"google.golang.org/protobuf/proto"
 )

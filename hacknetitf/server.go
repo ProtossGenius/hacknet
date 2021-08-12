@@ -24,7 +24,7 @@ const (
 // ErrHackerExist hacker is exist.
 var ErrHackerExist = errors.New("ErrHackerExist")
 
-// s4cImpl ServerForClientItf's impl.
+// s4cImpl ServerItf's impl.
 type s4cImpl struct {
 	pointInfoMgr pinfo.PointInfoMgrItf
 	p2pHelper    pinfo.P2PHelperItf
@@ -210,7 +210,7 @@ func check(err error) {
 }
 
 // news4c new s4cImpl.
-func news4c(port int) ServerForClientItf {
+func news4c(port int) ServerItf {
 	res := &s4cImpl{pointInfoMgr: pinfo.NewPointInfoMgr(), binder: nil, p2pHelper: pinfo.NewP2PHelper()}
 	// udp bind port
 	var err error

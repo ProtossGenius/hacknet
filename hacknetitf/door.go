@@ -12,10 +12,10 @@ import (
 /*@SMIST
 include("parseProtos.js");
 setIgnoreInput(true);
-proto2GoItf("./protos/cs.proto", "ServerForClientItf", "server for client")
+proto2GoItf("./protos/cs.proto", "ServerItf", "server for client")
 */
-// ServerForClientItf server for client.
-type ServerForClientItf interface {
+// ServerItf server for client.
+type ServerItf interface {
 	// Register register this client to server.
 	Register(email string, hackerAddr *net.UDPAddr, msg *cs.Register) (*hmsg.Message, map[string]interface{}, error)
 	// CheckEmail check if email belong to register.
@@ -30,7 +30,7 @@ type ServerForClientItf interface {
 // @SMIST setIgnoreInput(false)
 
 // ServerForClientFactory product server for client.
-type ServerForClientFactory func(port int) ServerForClientItf
+type ServerForClientFactory func(port int) ServerItf
 
 // SetServerForClientFactory set factory.
 func SetServerForClientFactory(factory ServerForClientFactory) {
@@ -40,7 +40,7 @@ func SetServerForClientFactory(factory ServerForClientFactory) {
 }
 
 // NewServerForClient create.
-func NewServerForClient(port int) ServerForClientItf {
+func NewServerForClient(port int) ServerItf {
 	return serverForClientFactory(port)
 }
 
