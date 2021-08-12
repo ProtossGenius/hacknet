@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 option java_package = "com.suremoon.hacknet.pb";
-option java_outer_classname="C2S";
+option java_outer_classname="cs";
 option go_package = "github.com/ProtossGenius/hacknet/pb/cs;cs";
 package cs;
 
@@ -18,11 +18,18 @@ message CheckEmail {
 	// Next available id: 1
 }
 
-// AskHack ask connect another client.
-message AskHack {
-	string target = 2; // target hacker's email.
-	string extra = 3; // extra data, for check or anything.
+// Forward send email to another point.
+message Forward {
+	string target = 1; // target hacker's email.
+	string extra = 2; // extra data, for check or anything.
 	// TODO: another things in future.
+}
+
+// SendMsg send message to the point.
+message SendMsg {
+	string msg = 1;	
+
+	// Next available id: 1
 }
 
 // HeartJump heart jump just for keep alive.

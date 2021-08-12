@@ -1,10 +1,9 @@
 package main
 
 import (
-	"github.com/ProtossGenius/hacknet/hnlog"
-	"github.com/sirupsen/logrus"
+	"github.com/ProtossGenius/hacknet/hacknetitf"
 )
 
 func main() {
-	hnlog.Warn("haha", logrus.Fields{})
+	hacknetitf.NewServerForClient(500)
 }

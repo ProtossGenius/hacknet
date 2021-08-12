@@ -63,7 +63,7 @@ function proto2GoItf(file, itfName, itfDesc) {
 			writeln(msg.desc)
 		}
 
-		writeln(msg.name + "(email string, hackerAddr *net.UDPAddr, msg *" + pkg + "." + msg.name + ") (*proto.Message, map[string]interface{}, error)")
+		writeln(msg.name + "(email string, hackerAddr *net.UDPAddr, msg *" + pkg + "." + msg.name + ") (*hmsg.Message, map[string]interface{}, error)")
 	}
 
 	write("}\n")
@@ -82,7 +82,7 @@ function proto2GoSwitch(file, tabs) {
 	pkg = pinfo.pkg
 	msgs = pinfo.msgs
 	writeln('const UnmarshalMsgMsg = "Unmarshal msg.Msg"\n')
-	writeln("var _resp *proto.Message\n")
+	writeln("var _resp *hmsg.Message\n")
 	writeln('var detail details\n')
 	writeln('switch msg.Enum {');
 	for (i in msgs) {
@@ -101,7 +101,7 @@ function proto2GoSwitch(file, tabs) {
 		writeln('return "s.' + msg + '", detail, wrapError(err)')
 		tabs--;
 		writeln("}\n")
-		writeln("s.write(msg.Email, hackerAddr, _resp)")
+		writeln("writeMsg(binder, hackerAddr, _resp)")
 		tabs--;
 
 	}
@@ -113,65 +113,32 @@ function proto2GoSwitch(file, tabs) {
 	writeTabs(tabs)
 }
 
-//protoPath = "../../protos/cs.proto"
-//write("\n/*");
-//proto2GoSwitch(protoPath, 1)
-//proto2GoItf(protoPath)
-//write("*/")
-
-//:SMIST include("parseProtos.js"); setIgnoreInput(true);
-/*	switch msg.Enum {
-	case int32(smn_dict.Deict_cs_Register):
-		_subMsg := new(cs.Register)
-		if err := proto.Unmarshal([]byte(msg.Msg), subMsg); err != nil {
-			return "unmarshal msg.Msg", details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
-		}
-
-		if _resp, detail, err := s.Register(_subMsg); err != nil {
-			return "s.Register", detail, wrapError(err)
-		} else {
-			s.write(hackerAddr, _resp)
-		}
-	case int32(smn_dict.Deict_cs_CheckEmail):
-		_subMsg := new(cs.CheckEmail)
-		if err := proto.Unmarshal([]byte(msg.Msg), subMsg); err != nil {
-			return "unmarshal msg.Msg", details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
-		}
-
-		if _resp, detail, err := s.CheckEmail(_subMsg); err != nil {
-			return "s.CheckEmail", detail, wrapError(err)
-		} else {
-			s.write(hackerAddr, _resp)
-		}
-	case int32(smn_dict.Deict_cs_AskHack):
-		_subMsg := new(cs.AskHack)
-		if err := proto.Unmarshal([]byte(msg.Msg), subMsg); err != nil {
-			return "unmarshal msg.Msg", details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
-		}
-
-		if _resp, detail, err := s.AskHack(_subMsg); err != nil {
-			return "s.AskHack", detail, wrapError(err)
-		} else {
-			s.write(hackerAddr, _resp)
-		}
-	case int32(smn_dict.Deict_cs_HeartJump):
-		_subMsg := new(cs.HeartJump)
-		if err := proto.Unmarshal([]byte(msg.Msg), subMsg); err != nil {
-			return "unmarshal msg.Msg", details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
-		}
-
-		if _resp, detail, err := s.HeartJump(_subMsg); err != nil {
-			return "s.HeartJump", detail, wrapError(err)
-		} else {
-			s.write(hackerAddr, _resp)
-		}
+function packMsgs(file){
+	pinfo = parse(file);
+	pkg = pinfo.pkg;
+	msgs = pinfo.msgs;
+	tabs = 0;
+	writeln = function(str) {
+		writeTabs(tabs);
+		write(str + '\n');
 	}
-	// Register register this client to server.
-	Register(*cs.Register)
-	// CheckEmail check if email belong to register.
-	CheckEmail(*cs.CheckEmail)
-	// AskHack ask connect another client.
-	AskHack(*cs.AskHack)
-	// HeartJump heart jump just for keep alive.
-	HeartJump(*cs.HeartJump)
-*/
+
+	for (i in msgs) {
+		msg = msgs[i].name;
+		pmsg = pkg + "_" + msg;
+		pfName = "pack_" +  pmsg 
+		writeln('// ' + pfName + ' pack message ' + pmsg + ".")
+		writeln("func " + pfName + '(email string, msg *' + pkg + "." + msg + ') (resp *hmsg.Message, err error) {')
+		++tabs;
+		writeln("var data []byte\n")
+		writeln("if data, err = proto.Marshal(msg); err != nil {")
+		++tabs;
+		writeln("return nil, err")
+		--tabs;
+		writeln("}\n")
+		writeln('return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_' + pkg + '_' + msg + '), Msg : string(data)}, nil')
+		--tabs;
+		writeln("}\n")
+	}
+}
+
