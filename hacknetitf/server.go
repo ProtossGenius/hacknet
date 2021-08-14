@@ -14,11 +14,11 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-const (
+var (
 	// ErrNoSuchHacker can't found this hacker by email.
-	ErrNoSuchHacker = "ErrNoSuchHacker"
+	ErrNoSuchHacker = errors.New("ErrNoSuchHacker")
 	// ErrUnexceptEnum enum not in except in this deal function.
-	ErrUnexceptEnum = "ErrUnexceptEnum"
+	ErrUnexceptEnum = errors.New("ErrUnexceptEnum")
 )
 
 // ErrHackerExist hacker is exist.
@@ -80,11 +80,14 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 	hnlog.Info("accept data", logrus.Fields{"remoteAddr": hackerAddr, "message": msg, "hackerInfo": hackerInfo})
 
 	if msg.Enum != int32(smn_dict.EDict_hnp_Register) && hackerInfo == nil {
-		return "check hackerInfo, not exist", details{"email": msg.Email}, wrapError(errors.New(ErrNoSuchHacker))
+		return "check hackerInfo, not exist", details{"email": msg.Email}, wrapError(ErrNoSuchHacker)
 	}
 
 	// @SMIST include("parseProtos.js"); proto2GoSwitch("./protos/hnp.proto", 1)
-	const UnmarshalMsgMsg = "Unmarshal msg.Msg"
+	const (
+		PackResult = "packResult"
+		UnmarshalMsgMsg = "Unmarshal msg.Msg"
+	)
 
 	var _resp string
 
@@ -107,7 +110,7 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			Enums : int32(smn_dict.EDict_hnp_Register), 
 			Info : _resp,
 		}); err != nil {
-			return "packResult",  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
+			return PackResult,  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
 		}
 
 		writeMsg(binder, hackerAddr, _result)
@@ -125,7 +128,7 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			Enums : int32(smn_dict.EDict_hnp_Result), 
 			Info : _resp,
 		}); err != nil {
-			return "packResult",  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
+			return PackResult,  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
 		}
 
 		writeMsg(binder, hackerAddr, _result)
@@ -143,7 +146,7 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			Enums : int32(smn_dict.EDict_hnp_CheckEmail), 
 			Info : _resp,
 		}); err != nil {
-			return "packResult",  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
+			return PackResult,  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
 		}
 
 		writeMsg(binder, hackerAddr, _result)
@@ -161,7 +164,7 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			Enums : int32(smn_dict.EDict_hnp_Forward), 
 			Info : _resp,
 		}); err != nil {
-			return "packResult",  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
+			return PackResult,  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
 		}
 
 		writeMsg(binder, hackerAddr, _result)
@@ -179,7 +182,7 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			Enums : int32(smn_dict.EDict_hnp_SendMsg), 
 			Info : _resp,
 		}); err != nil {
-			return "packResult",  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
+			return PackResult,  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
 		}
 
 		writeMsg(binder, hackerAddr, _result)
@@ -197,12 +200,12 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			Enums : int32(smn_dict.EDict_hnp_HeartJump), 
 			Info : _resp,
 		}); err != nil {
-			return "packResult",  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
+			return PackResult,  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
 		}
 
 		writeMsg(binder, hackerAddr, _result)
 	default:
-		return "unknow Enum", details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(errors.New(ErrUnexceptEnum))
+		return "unknow Enum", details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(ErrUnexceptEnum)
 	}
 	/* @SMIST setIgnoreInput(false);*/
 	return "", nil, nil

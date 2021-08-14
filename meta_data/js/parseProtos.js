@@ -81,7 +81,12 @@ function proto2GoSwitch(file, tabs) {
 	pinfo = parse(file);
 	pkg = pinfo.pkg
 	msgs = pinfo.msgs
-	writeln('const UnmarshalMsgMsg = "Unmarshal msg.Msg"\n')
+	writeln("const (")
+	++tabs;
+	writeln('PackResult = "packResult"')
+	writeln('UnmarshalMsgMsg = "Unmarshal msg.Msg"')
+	--tabs;
+	writeln(")\n")
 	writeln("var _resp string\n")
 	writeln('var detail details\n')
 	writeln('var _result *hmsg.Message\n')
@@ -109,7 +114,7 @@ function proto2GoSwitch(file, tabs) {
 		tabs--;
 		writeln("}); err != nil {")
 		tabs++;
-		writeln('return "packResult",  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)')
+		writeln('return PackResult,  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)')
 		tabs--;
 		writeln("}\n")
 		writeln("writeMsg(binder, hackerAddr, _result)")
@@ -118,7 +123,7 @@ function proto2GoSwitch(file, tabs) {
 	}
 	writeln("default:")
 	tabs++;
-	writeln('return "unknow Enum", details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(errors.New(ErrUnexceptEnum))')
+	writeln('return "unknow Enum", details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(ErrUnexceptEnum)')
 	tabs--;
 	writeln("}")
 	writeTabs(tabs)
