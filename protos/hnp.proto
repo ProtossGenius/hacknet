@@ -2,20 +2,24 @@
 
 syntax = "proto3";
 option java_package = "com.suremoon.hacknet.pb";
-option java_outer_classname="cs";
-option go_package = "github.com/ProtossGenius/hacknet/pb/cs;cs";
-package cs;
+option java_outer_classname="hnp";
+option go_package = "github.com/ProtossGenius/hacknet/pb/hnp;hnp";
+package hnp;
 
 // Register register this client to server.
 message Register {
-	string pubKey = 2; 
+	string pubKey = 1; 
+}
+
+// RegResult register result
+message Result {
+	int32 enums = 1; // info's enum;
+	string info = 2; // Success return "", fail return error reason.
 }
 
 // CheckEmail check if email belong to register.
 message CheckEmail {
-	string code = 2;	
-
-	// Next available id: 1
+	string code = 1;	
 }
 
 // Forward send email to another point.

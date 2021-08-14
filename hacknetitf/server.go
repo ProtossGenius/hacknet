@@ -6,8 +6,8 @@ import (
 	"net"
 
 	"github.com/ProtossGenius/hacknet/hnlog"
-	"github.com/ProtossGenius/hacknet/pb/cs"
 	"github.com/ProtossGenius/hacknet/pb/hmsg"
+	"github.com/ProtossGenius/hacknet/pb/hnp"
 	"github.com/ProtossGenius/hacknet/pb/smn_dict"
 	"github.com/ProtossGenius/hacknet/pinfo"
 	"github.com/sirupsen/logrus"
@@ -32,39 +32,32 @@ type s4cImpl struct {
 }
 
 // Register register this client to server.
-func (s *s4cImpl) Register(email string, hackerAddr *net.UDPAddr, msg *cs.Register) (
-	*hmsg.Message, map[string]interface{}, error) {
-	findH := s.pointInfoMgr.FindHacker(email)
-	if findH != nil && !addrEquals(hackerAddr, findH.HackerAddr) {
-		return nil, details{}, ErrHackerExist
-	}
+func (s *s4cImpl) Register(email string, hackerAddr *net.UDPAddr, msg *hnp.Register) (string, map[string]interface{}, error) {
+	panic("not implemented") // TODO: Implement
+}
 
-	_ = s.pointInfoMgr.HackerJoin(hackerAddr, email, msg.PubKey)
-
-	return &hmsg.Message{Enum: int32(smn_dict.EDict_cs_SendMsg), Email: email, Msg: ""}, details{}, nil
+// Result // RegResult register result.
+func (s *s4cImpl) Result(email string, hackerAddr *net.UDPAddr, msg *hnp.Result) (string, map[string]interface{}, error) {
+	panic("not implemented") // TODO: Implement
 }
 
 // CheckEmail check if email belong to register.
-func (s *s4cImpl) CheckEmail(email string, hackerAddr *net.UDPAddr, msg *cs.CheckEmail) (
-	*hmsg.Message, map[string]interface{}, error) {
+func (s *s4cImpl) CheckEmail(email string, hackerAddr *net.UDPAddr, msg *hnp.CheckEmail) (string, map[string]interface{}, error) {
 	panic("not implemented") // TODO: Implement
 }
 
 // Forward send email to another point.
-func (s *s4cImpl) Forward(email string, hackerAddr *net.UDPAddr, msg *cs.Forward) (
-	*hmsg.Message, map[string]interface{}, error) {
+func (s *s4cImpl) Forward(email string, hackerAddr *net.UDPAddr, msg *hnp.Forward) (string, map[string]interface{}, error) {
 	panic("not implemented") // TODO: Implement
 }
 
 // SendMsg send message to the point.
-func (s *s4cImpl) SendMsg(email string, hackerAddr *net.UDPAddr, msg *cs.SendMsg) (
-	*hmsg.Message, map[string]interface{}, error) {
+func (s *s4cImpl) SendMsg(email string, hackerAddr *net.UDPAddr, msg *hnp.SendMsg) (string, map[string]interface{}, error) {
 	panic("not implemented") // TODO: Implement
 }
 
 // HeartJump heart jump just for keep alive.
-func (s *s4cImpl) HeartJump(email string, hackerAddr *net.UDPAddr, msg *cs.HeartJump) (
-	*hmsg.Message, map[string]interface{}, error) {
+func (s *s4cImpl) HeartJump(email string, hackerAddr *net.UDPAddr, msg *hnp.HeartJump) (string, map[string]interface{}, error) {
 	panic("not implemented") // TODO: Implement
 }
 
@@ -86,20 +79,22 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 
 	hnlog.Info("accept data", logrus.Fields{"remoteAddr": hackerAddr, "message": msg, "hackerInfo": hackerInfo})
 
-	if msg.Enum != int32(smn_dict.EDict_cs_Register) && hackerInfo == nil {
+	if msg.Enum != int32(smn_dict.EDict_hnp_Register) && hackerInfo == nil {
 		return "check hackerInfo, not exist", details{"email": msg.Email}, wrapError(errors.New(ErrNoSuchHacker))
 	}
 
-	// @SMIST include("parseProtos.js"); proto2GoSwitch("./protos/cs.proto", 1)
+	// @SMIST include("parseProtos.js"); proto2GoSwitch("./protos/hnp.proto", 1)
 	const UnmarshalMsgMsg = "Unmarshal msg.Msg"
 
-	var _resp *hmsg.Message
+	var _resp string
 
 	var detail details
 
+	var _result *hmsg.Message
+
 	switch msg.Enum {
-	case int32(smn_dict.EDict_cs_Register):
-		_subMsg := new(cs.Register)
+	case int32(smn_dict.EDict_hnp_Register):
+		_subMsg := new(hnp.Register)
 		if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {
 			return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
 		}
@@ -108,9 +103,34 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			return "s.Register", detail, wrapError(err)
 		}
 
-		writeMsg(binder, hackerAddr, _resp)
-	case int32(smn_dict.EDict_cs_CheckEmail):
-		_subMsg := new(cs.CheckEmail)
+		if _result, err = pack_hnp_Result(msg.Email, &hnp.Result{
+			Enums : int32(smn_dict.EDict_hnp_Register), 
+			Info : _resp,
+		}); err != nil {
+			return "packResult",  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
+		}
+
+		writeMsg(binder, hackerAddr, _result)
+	case int32(smn_dict.EDict_hnp_Result):
+		_subMsg := new(hnp.Result)
+		if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {
+			return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
+		}
+
+		if _resp, detail, err = s.Result(msg.Email, hackerAddr, _subMsg); err != nil {
+			return "s.Result", detail, wrapError(err)
+		}
+
+		if _result, err = pack_hnp_Result(msg.Email, &hnp.Result{
+			Enums : int32(smn_dict.EDict_hnp_Result), 
+			Info : _resp,
+		}); err != nil {
+			return "packResult",  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
+		}
+
+		writeMsg(binder, hackerAddr, _result)
+	case int32(smn_dict.EDict_hnp_CheckEmail):
+		_subMsg := new(hnp.CheckEmail)
 		if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {
 			return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
 		}
@@ -119,9 +139,16 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			return "s.CheckEmail", detail, wrapError(err)
 		}
 
-		writeMsg(binder, hackerAddr, _resp)
-	case int32(smn_dict.EDict_cs_Forward):
-		_subMsg := new(cs.Forward)
+		if _result, err = pack_hnp_Result(msg.Email, &hnp.Result{
+			Enums : int32(smn_dict.EDict_hnp_CheckEmail), 
+			Info : _resp,
+		}); err != nil {
+			return "packResult",  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
+		}
+
+		writeMsg(binder, hackerAddr, _result)
+	case int32(smn_dict.EDict_hnp_Forward):
+		_subMsg := new(hnp.Forward)
 		if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {
 			return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
 		}
@@ -130,9 +157,16 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			return "s.Forward", detail, wrapError(err)
 		}
 
-		writeMsg(binder, hackerAddr, _resp)
-	case int32(smn_dict.EDict_cs_SendMsg):
-		_subMsg := new(cs.SendMsg)
+		if _result, err = pack_hnp_Result(msg.Email, &hnp.Result{
+			Enums : int32(smn_dict.EDict_hnp_Forward), 
+			Info : _resp,
+		}); err != nil {
+			return "packResult",  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
+		}
+
+		writeMsg(binder, hackerAddr, _result)
+	case int32(smn_dict.EDict_hnp_SendMsg):
+		_subMsg := new(hnp.SendMsg)
 		if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {
 			return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
 		}
@@ -141,9 +175,16 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			return "s.SendMsg", detail, wrapError(err)
 		}
 
-		writeMsg(binder, hackerAddr, _resp)
-	case int32(smn_dict.EDict_cs_HeartJump):
-		_subMsg := new(cs.HeartJump)
+		if _result, err = pack_hnp_Result(msg.Email, &hnp.Result{
+			Enums : int32(smn_dict.EDict_hnp_SendMsg), 
+			Info : _resp,
+		}); err != nil {
+			return "packResult",  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
+		}
+
+		writeMsg(binder, hackerAddr, _result)
+	case int32(smn_dict.EDict_hnp_HeartJump):
+		_subMsg := new(hnp.HeartJump)
 		if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {
 			return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
 		}
@@ -152,7 +193,14 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			return "s.HeartJump", detail, wrapError(err)
 		}
 
-		writeMsg(binder, hackerAddr, _resp)
+		if _result, err = pack_hnp_Result(msg.Email, &hnp.Result{
+			Enums : int32(smn_dict.EDict_hnp_HeartJump), 
+			Info : _resp,
+		}); err != nil {
+			return "packResult",  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)
+		}
+
+		writeMsg(binder, hackerAddr, _result)
 	default:
 		return "unknow Enum", details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(errors.New(ErrUnexceptEnum))
 	}

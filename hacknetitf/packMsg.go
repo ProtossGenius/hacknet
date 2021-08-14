@@ -2,9 +2,8 @@
 package hacknetitf
 
 import (
-	"github.com/ProtossGenius/hacknet/pb/cs"
 	"github.com/ProtossGenius/hacknet/pb/hmsg"
-	"github.com/ProtossGenius/hacknet/pb/sc"
+	"github.com/ProtossGenius/hacknet/pb/hnp"
 	"github.com/ProtossGenius/hacknet/pb/smn_dict"
 	"google.golang.org/protobuf/proto"
 )
@@ -12,72 +11,71 @@ import (
 /*@SMIST
 setIgnoreInput(true);
 include('parseProtos.js');
-packMsgs("./protos/cs.proto")
-packMsgs("./protos/sc.proto")
+packMsgs("./protos/hnp.proto")
 */
-// pack_cs_Register pack message cs_Register.
-func pack_cs_Register(email string, msg *cs.Register) (resp *hmsg.Message, err error) {
+// pack_hnp_Register pack message hnp_Register.
+func pack_hnp_Register(email string, msg *hnp.Register) (resp *hmsg.Message, err error) {
 	var data []byte
 
 	if data, err = proto.Marshal(msg); err != nil {
 		return nil, err
 	}
 
-	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_cs_Register), Msg : string(data)}, nil
+	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_hnp_Register), Msg : string(data)}, nil
 }
 
-// pack_cs_CheckEmail pack message cs_CheckEmail.
-func pack_cs_CheckEmail(email string, msg *cs.CheckEmail) (resp *hmsg.Message, err error) {
+// pack_hnp_Result pack message hnp_Result.
+func pack_hnp_Result(email string, msg *hnp.Result) (resp *hmsg.Message, err error) {
 	var data []byte
 
 	if data, err = proto.Marshal(msg); err != nil {
 		return nil, err
 	}
 
-	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_cs_CheckEmail), Msg : string(data)}, nil
+	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_hnp_Result), Msg : string(data)}, nil
 }
 
-// pack_cs_Forward pack message cs_Forward.
-func pack_cs_Forward(email string, msg *cs.Forward) (resp *hmsg.Message, err error) {
+// pack_hnp_CheckEmail pack message hnp_CheckEmail.
+func pack_hnp_CheckEmail(email string, msg *hnp.CheckEmail) (resp *hmsg.Message, err error) {
 	var data []byte
 
 	if data, err = proto.Marshal(msg); err != nil {
 		return nil, err
 	}
 
-	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_cs_Forward), Msg : string(data)}, nil
+	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_hnp_CheckEmail), Msg : string(data)}, nil
 }
 
-// pack_cs_SendMsg pack message cs_SendMsg.
-func pack_cs_SendMsg(email string, msg *cs.SendMsg) (resp *hmsg.Message, err error) {
+// pack_hnp_Forward pack message hnp_Forward.
+func pack_hnp_Forward(email string, msg *hnp.Forward) (resp *hmsg.Message, err error) {
 	var data []byte
 
 	if data, err = proto.Marshal(msg); err != nil {
 		return nil, err
 	}
 
-	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_cs_SendMsg), Msg : string(data)}, nil
+	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_hnp_Forward), Msg : string(data)}, nil
 }
 
-// pack_cs_HeartJump pack message cs_HeartJump.
-func pack_cs_HeartJump(email string, msg *cs.HeartJump) (resp *hmsg.Message, err error) {
+// pack_hnp_SendMsg pack message hnp_SendMsg.
+func pack_hnp_SendMsg(email string, msg *hnp.SendMsg) (resp *hmsg.Message, err error) {
 	var data []byte
 
 	if data, err = proto.Marshal(msg); err != nil {
 		return nil, err
 	}
 
-	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_cs_HeartJump), Msg : string(data)}, nil
+	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_hnp_SendMsg), Msg : string(data)}, nil
 }
 
-// pack_sc_AnsHack pack message sc_AnsHack.
-func pack_sc_AnsHack(email string, msg *sc.AnsHack) (resp *hmsg.Message, err error) {
+// pack_hnp_HeartJump pack message hnp_HeartJump.
+func pack_hnp_HeartJump(email string, msg *hnp.HeartJump) (resp *hmsg.Message, err error) {
 	var data []byte
 
 	if data, err = proto.Marshal(msg); err != nil {
 		return nil, err
 	}
 
-	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_sc_AnsHack), Msg : string(data)}, nil
+	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_hnp_HeartJump), Msg : string(data)}, nil
 }
 

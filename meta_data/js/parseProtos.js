@@ -63,7 +63,7 @@ function proto2GoItf(file, itfName, itfDesc) {
 			writeln(msg.desc)
 		}
 
-		writeln(msg.name + "(email string, hackerAddr *net.UDPAddr, msg *" + pkg + "." + msg.name + ") (*hmsg.Message, map[string]interface{}, error)")
+		writeln(msg.name + "(email string, hackerAddr *net.UDPAddr, msg *" + pkg + "." + msg.name + ") (string, map[string]interface{}, error)")
 	}
 
 	write("}\n")
@@ -82,8 +82,9 @@ function proto2GoSwitch(file, tabs) {
 	pkg = pinfo.pkg
 	msgs = pinfo.msgs
 	writeln('const UnmarshalMsgMsg = "Unmarshal msg.Msg"\n')
-	writeln("var _resp *hmsg.Message\n")
+	writeln("var _resp string\n")
 	writeln('var detail details\n')
+	writeln('var _result *hmsg.Message\n')
 	writeln('switch msg.Enum {');
 	for (i in msgs) {
 		msg = msgs[i].name
@@ -101,7 +102,17 @@ function proto2GoSwitch(file, tabs) {
 		writeln('return "s.' + msg + '", detail, wrapError(err)')
 		tabs--;
 		writeln("}\n")
-		writeln("writeMsg(binder, hackerAddr, _resp)")
+		writeln("if _result, err = pack_" + pkg + "_Result(msg.Email, &" + pkg + ".Result{")
+		tabs++;
+		writeln("Enums : " + "int32(smn_dict.EDict_" + pkg + "_" + msg + "), ")
+		writeln("Info : _resp,")
+		tabs--;
+		writeln("}); err != nil {")
+		tabs++;
+		writeln('return "packResult",  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)')
+		tabs--;
+		writeln("}\n")
+		writeln("writeMsg(binder, hackerAddr, _result)")
 		tabs--;
 
 	}

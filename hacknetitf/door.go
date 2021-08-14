@@ -4,28 +4,30 @@ import (
 	"net"
 
 	"github.com/ProtossGenius/hacknet/hnlog"
-	"github.com/ProtossGenius/hacknet/pb/cs"
 	"github.com/ProtossGenius/hacknet/pb/hmsg"
+	"github.com/ProtossGenius/hacknet/pb/hnp"
 	"google.golang.org/protobuf/proto"
 )
 
 /*@SMIST
 include("parseProtos.js");
 setIgnoreInput(true);
-proto2GoItf("./protos/cs.proto", "ServerItf", "server for client")
+proto2GoItf("./protos/hnp.proto", "ServerItf", "server for client")
 */
 // ServerItf server for client.
 type ServerItf interface {
 	// Register register this client to server.
-	Register(email string, hackerAddr *net.UDPAddr, msg *cs.Register) (*hmsg.Message, map[string]interface{}, error)
+	Register(email string, hackerAddr *net.UDPAddr, msg *hnp.Register) (string, map[string]interface{}, error)
+	// Result // RegResult register result.
+	Result(email string, hackerAddr *net.UDPAddr, msg *hnp.Result) (string, map[string]interface{}, error)
 	// CheckEmail check if email belong to register.
-	CheckEmail(email string, hackerAddr *net.UDPAddr, msg *cs.CheckEmail) (*hmsg.Message, map[string]interface{}, error)
+	CheckEmail(email string, hackerAddr *net.UDPAddr, msg *hnp.CheckEmail) (string, map[string]interface{}, error)
 	// Forward send email to another point.
-	Forward(email string, hackerAddr *net.UDPAddr, msg *cs.Forward) (*hmsg.Message, map[string]interface{}, error)
+	Forward(email string, hackerAddr *net.UDPAddr, msg *hnp.Forward) (string, map[string]interface{}, error)
 	// SendMsg send message to the point.
-	SendMsg(email string, hackerAddr *net.UDPAddr, msg *cs.SendMsg) (*hmsg.Message, map[string]interface{}, error)
+	SendMsg(email string, hackerAddr *net.UDPAddr, msg *hnp.SendMsg) (string, map[string]interface{}, error)
 	// HeartJump heart jump just for keep alive.
-	HeartJump(email string, hackerAddr *net.UDPAddr, msg *cs.HeartJump) (*hmsg.Message, map[string]interface{}, error)
+	HeartJump(email string, hackerAddr *net.UDPAddr, msg *hnp.HeartJump) (string, map[string]interface{}, error)
 }
 // @SMIST setIgnoreInput(false)
 
