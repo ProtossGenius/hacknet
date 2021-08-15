@@ -95,7 +95,7 @@ function proto2GoSwitch(file, tabs) {
 		writeln("case int32(smn_dict.EDict_" + pkg + "_" + msg + "):");
 		tabs++;
 		writeln("_subMsg" + " := new(" +  pkg + "." + msg +")")
-		writeln("if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {")
+		writeln("if err = msg.Msg.UnmarshalTo(_subMsg); err != nil {")
 		tabs++;
 		writeln('return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)')
 		tabs--;
@@ -106,17 +106,19 @@ function proto2GoSwitch(file, tabs) {
 		writeln('return "s.' + msg + '", detail, wrapError(err)')
 		tabs--;
 		writeln("}\n")
-		writeln("if _result, err = pack_" + pkg + "_Result(msg.Email, &" + pkg + ".Result{")
-		tabs++;
-		writeln("Enums: " + "int32(smn_dict.EDict_" + pkg + "_" + msg + "), ")
-		writeln("Info: _resp,")
-		tabs--;
-		writeln("}); err != nil {")
-		tabs++;
-		writeln('return PackResult,  details{"email": msg.Email, "_resp": _resp, "error": err}, wrapError(err)')
-		tabs--;
-		writeln("}\n")
+		writeln('hnlog.Info("dealPackage", details{"method": "s.' + msg + '", "_resp": _resp, "details": detail, "err": err})\n')
+		
 		if (msg != "ForwardMsg"){
+			writeln("if _result, err = Pack_" + pkg + "_Result(msg.Email, &" + pkg + ".Result{")
+			tabs++;
+			writeln("Enums: " + "int32(smn_dict.EDict_" + pkg + "_" + msg + "), ")
+			writeln("Info: _resp,")
+			tabs--;
+			writeln("}); err != nil {")
+			tabs++;
+			writeln('return PackResult,  details{"email": msg.Email, "_resp": _resp, "error": err}, wrapError(err)')
+			tabs--;
+			writeln("}\n")
 			writeln("writeMsg(binder, hackerAddr, _result)")
 		}
 		tabs--;
@@ -143,17 +145,17 @@ function packMsgs(file){
 	for (i in msgs) {
 		msg = msgs[i].name;
 		pmsg = pkg + "_" + msg;
-		pfName = "pack_" +  pmsg 
+		pfName = "Pack_" +  pmsg 
 		writeln('// ' + pfName + ' pack message ' + pmsg + ".")
 		writeln("func " + pfName + '(email string, msg *' + pkg + "." + msg + ') (resp *hmsg.Message, err error) {')
 		++tabs;
-		writeln("var data []byte\n")
-		writeln("if data, err = proto.Marshal(msg); err != nil {")
+		writeln('var any *anypb.Any')
+		writeln('if any, err = ptypes.MarshalAny(msg); err != nil {')
 		++tabs;
 		writeln("return nil, err")
 		--tabs;
 		writeln("}\n")
-		writeln('return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_' + pkg + '_' + msg + '), Msg : string(data)}, nil')
+		writeln('return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_' + pkg + '_' + msg + '), Msg : any}, nil')
 		--tabs;
 		writeln("}\n")
 	}

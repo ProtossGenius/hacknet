@@ -51,10 +51,12 @@ func (s *s4cImpl) Register(email string, hackerAddr *net.UDPAddr, msg *hnp.Regis
 
 	hackerInfo = s.pointInfoMgr.HackerJoin(hackerAddr, email, msg.PubKey)
 
+	hnlog.Info("s.Register", details{"email": email, "hackerAddr": hackerAddr, "pubKey": msg.PubKey})
+
 	return pinfo.GetHackerStatusName(hackerInfo.Status), details{}, nil
 }
 
-// Result // RegResult register result.
+// Result register result.
 func (s *s4cImpl) Result(email string, hackerAddr *net.UDPAddr, msg *hnp.Result) (
 	string, map[string]interface{}, error) {
 	hnlog.Info(msg.GetInfo(), details{})
@@ -76,10 +78,15 @@ func (s *s4cImpl) Forward(email string, hackerAddr *net.UDPAddr, msg *hnp.Forwar
 		return ErrNoSuchHacker.Error(), nil, nil
 	}
 
-	resp, err := pack_hnp_ForwardMsg(s.email, &hnp.ForwardMsg{})
+	resp, err := Pack_hnp_ForwardMsg(s.email, &hnp.ForwardMsg{
+		FromEmail: email, FromIp: string(hackerAddr.IP),
+		Msg: msg.Msg, FromPort: int32(hackerAddr.Port),
+		Enums: msg.Enums,
+	})
 	if err != nil {
 		return err.Error(), details{"function": "Forward", "when": "pack_hnp_ForwardMsg", "err": err}, err
 	}
+
 	writeMsg(s.binder, target.HackerAddr, resp)
 
 	return "", nil, nil
@@ -148,7 +155,7 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 	switch msg.Enum {
 	case int32(smn_dict.EDict_hnp_Register):
 		_subMsg := new(hnp.Register)
-		if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {
+		if err = msg.Msg.UnmarshalTo(_subMsg); err != nil {
 			return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
 		}
 
@@ -156,7 +163,9 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			return "s.Register", detail, wrapError(err)
 		}
 
-		if _result, err = pack_hnp_Result(msg.Email, &hnp.Result{
+		hnlog.Info("dealPackage", details{"method": "s.Register", "_resp": _resp, "details": detail, "err": err})
+
+		if _result, err = Pack_hnp_Result(msg.Email, &hnp.Result{
 			Enums: int32(smn_dict.EDict_hnp_Register), 
 			Info: _resp,
 		}); err != nil {
@@ -166,7 +175,7 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 		writeMsg(binder, hackerAddr, _result)
 	case int32(smn_dict.EDict_hnp_Result):
 		_subMsg := new(hnp.Result)
-		if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {
+		if err = msg.Msg.UnmarshalTo(_subMsg); err != nil {
 			return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
 		}
 
@@ -174,7 +183,9 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			return "s.Result", detail, wrapError(err)
 		}
 
-		if _result, err = pack_hnp_Result(msg.Email, &hnp.Result{
+		hnlog.Info("dealPackage", details{"method": "s.Result", "_resp": _resp, "details": detail, "err": err})
+
+		if _result, err = Pack_hnp_Result(msg.Email, &hnp.Result{
 			Enums: int32(smn_dict.EDict_hnp_Result), 
 			Info: _resp,
 		}); err != nil {
@@ -184,7 +195,7 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 		writeMsg(binder, hackerAddr, _result)
 	case int32(smn_dict.EDict_hnp_CheckEmail):
 		_subMsg := new(hnp.CheckEmail)
-		if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {
+		if err = msg.Msg.UnmarshalTo(_subMsg); err != nil {
 			return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
 		}
 
@@ -192,7 +203,9 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			return "s.CheckEmail", detail, wrapError(err)
 		}
 
-		if _result, err = pack_hnp_Result(msg.Email, &hnp.Result{
+		hnlog.Info("dealPackage", details{"method": "s.CheckEmail", "_resp": _resp, "details": detail, "err": err})
+
+		if _result, err = Pack_hnp_Result(msg.Email, &hnp.Result{
 			Enums: int32(smn_dict.EDict_hnp_CheckEmail), 
 			Info: _resp,
 		}); err != nil {
@@ -202,7 +215,7 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 		writeMsg(binder, hackerAddr, _result)
 	case int32(smn_dict.EDict_hnp_Forward):
 		_subMsg := new(hnp.Forward)
-		if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {
+		if err = msg.Msg.UnmarshalTo(_subMsg); err != nil {
 			return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
 		}
 
@@ -210,7 +223,9 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			return "s.Forward", detail, wrapError(err)
 		}
 
-		if _result, err = pack_hnp_Result(msg.Email, &hnp.Result{
+		hnlog.Info("dealPackage", details{"method": "s.Forward", "_resp": _resp, "details": detail, "err": err})
+
+		if _result, err = Pack_hnp_Result(msg.Email, &hnp.Result{
 			Enums: int32(smn_dict.EDict_hnp_Forward), 
 			Info: _resp,
 		}); err != nil {
@@ -220,7 +235,7 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 		writeMsg(binder, hackerAddr, _result)
 	case int32(smn_dict.EDict_hnp_ForwardMsg):
 		_subMsg := new(hnp.ForwardMsg)
-		if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {
+		if err = msg.Msg.UnmarshalTo(_subMsg); err != nil {
 			return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
 		}
 
@@ -228,16 +243,11 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			return "s.ForwardMsg", detail, wrapError(err)
 		}
 
-		if _result, err = pack_hnp_Result(msg.Email, &hnp.Result{
-			Enums: int32(smn_dict.EDict_hnp_ForwardMsg), 
-			Info: _resp,
-		}); err != nil {
-			return PackResult,  details{"email": msg.Email, "_resp": _resp, "error": err}, wrapError(err)
-		}
+		hnlog.Info("dealPackage", details{"method": "s.ForwardMsg", "_resp": _resp, "details": detail, "err": err})
 
 	case int32(smn_dict.EDict_hnp_HeartJump):
 		_subMsg := new(hnp.HeartJump)
-		if err = proto.Unmarshal([]byte(msg.Msg), _subMsg); err != nil {
+		if err = msg.Msg.UnmarshalTo(_subMsg); err != nil {
 			return UnmarshalMsgMsg, details{"msg.Enum": msg.Enum, "msg.Msg": msg.Msg}, wrapError(err)
 		}
 
@@ -245,7 +255,9 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 			return "s.HeartJump", detail, wrapError(err)
 		}
 
-		if _result, err = pack_hnp_Result(msg.Email, &hnp.Result{
+		hnlog.Info("dealPackage", details{"method": "s.HeartJump", "_resp": _resp, "details": detail, "err": err})
+
+		if _result, err = Pack_hnp_Result(msg.Email, &hnp.Result{
 			Enums: int32(smn_dict.EDict_hnp_HeartJump), 
 			Info: _resp,
 		}); err != nil {
@@ -284,10 +296,10 @@ func (s *s4cImpl) startUp() {
 			continue
 		}
 
-		go func() {
-			data := make([]byte, readSize)
-			copy(data, bytes[0:readSize])
+		data := make([]byte, readSize)
+		copy(data, bytes[0:readSize])
 
+		go func() {
 			if msg, hacker, err := s.readMsg(data); err != nil {
 				hnlog.Error("s4cImpl.startUp#readMsg", details{"error": err})
 			} else if info, fields, err := s.dealPackage(msg, hackerAddr, hacker); err != nil {
@@ -311,8 +323,11 @@ func check(err error) {
 
 // news4c new s4cImpl.
 func news4c(port int, email string, callback OnForwardMsg) ServerItf {
-	res := &s4cImpl{pointInfoMgr: pinfo.NewPointInfoMgr(), binder: nil, p2pHelper: pinfo.NewP2PHelper(),
-		email: email, onForwardMsg: callback}
+	res := &s4cImpl{
+		pointInfoMgr: pinfo.NewPointInfoMgr(), binder: nil, p2pHelper: pinfo.NewP2PHelper(),
+		email: email, onForwardMsg: callback,
+	}
+
 	// udp bind port
 	var err error
 	res.binder, err = net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4zero, Port: port, Zone: ""})

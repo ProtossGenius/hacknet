@@ -35,7 +35,7 @@ message ForwardMsg {
 	string fromEmail = 1;
 	string fromIp = 2;
 	int32  fromPort = 3;
-	string enums = 4;
+	int32  enums = 4;
 	string msg = 5;
 	// Next available id: 1
 }
