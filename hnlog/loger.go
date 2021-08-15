@@ -30,12 +30,12 @@ func logTime() *logrus.Entry {
 }
 
 // Info write log info.
-func Info(info string, fields logrus.Fields) {
+func Info(info string, fields map[string]interface{}) {
 	logTime().WithFields(fields).Infoln(info)
 }
 
 // Warn write warning log.
-func Warn(info string, fields logrus.Fields) {
+func Warn(info string, fields map[string]interface{}) {
 	logTime().WithFields(fields).Warnln(info)
 }
 
@@ -43,3 +43,6 @@ func Warn(info string, fields logrus.Fields) {
 func Error(info string, fields map[string]interface{}) {
 	logTime().WithFields(fields).Errorln(info)
 }
+
+// Fields for fields.
+type Fields map[string]interface{}

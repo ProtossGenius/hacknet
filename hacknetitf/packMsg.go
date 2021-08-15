@@ -57,15 +57,15 @@ func pack_hnp_Forward(email string, msg *hnp.Forward) (resp *hmsg.Message, err e
 	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_hnp_Forward), Msg : string(data)}, nil
 }
 
-// pack_hnp_SendMsg pack message hnp_SendMsg.
-func pack_hnp_SendMsg(email string, msg *hnp.SendMsg) (resp *hmsg.Message, err error) {
+// pack_hnp_ForwardMsg pack message hnp_ForwardMsg.
+func pack_hnp_ForwardMsg(email string, msg *hnp.ForwardMsg) (resp *hmsg.Message, err error) {
 	var data []byte
 
 	if data, err = proto.Marshal(msg); err != nil {
 		return nil, err
 	}
 
-	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_hnp_SendMsg), Msg : string(data)}, nil
+	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_hnp_ForwardMsg), Msg : string(data)}, nil
 }
 
 // pack_hnp_HeartJump pack message hnp_HeartJump.

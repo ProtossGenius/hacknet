@@ -11,7 +11,7 @@ message Register {
 	string pubKey = 1; 
 }
 
-// RegResult register result
+// Result register result
 message Result {
 	int32 enums = 1; // info's enum;
 	string info = 2; // Success return "", fail return error reason.
@@ -25,14 +25,18 @@ message CheckEmail {
 // Forward send email to another point.
 message Forward {
 	string target = 1; // target hacker's email.
-	string extra = 2; // extra data, for check or anything.
+	int32  enums = 2; // forward message's enums.
+	string msg = 3; // message to send.
 	// TODO: another things in future.
 }
 
-// SendMsg send message to the point.
-message SendMsg {
-	string msg = 1;	
-
+// ForwardMsg send message to the point.
+message ForwardMsg {
+	string fromEmail = 1;
+	string fromIp = 2;
+	int32  fromPort = 3;
+	string enums = 4;
+	string msg = 5;
 	// Next available id: 1
 }
 

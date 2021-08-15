@@ -6,12 +6,11 @@ package smn_dict;
 
 enum EDict{
 	None = 0;
-	hnp_Register = 2;
-	hnp_Result = 5;
-	hnp_CheckEmail = 7;
-	hmsg_Message = 9;
-	hnp_Forward = 10;
-	//hnp_to the point. = 14;
-	hnp_SendMsg = 15;
-	hnp_HeartJump = 16;
+	hmsg_Message = 1;
+	hnp_Forward = 2;
+	hnp_ForwardMsg = 3;
+	hnp_Register = 6;
+	hnp_Result = 7;
+	hnp_CheckEmail = 8;
+	hnp_HeartJump = 10;
 }

@@ -18,21 +18,22 @@ proto2GoItf("./protos/hnp.proto", "ServerItf", "server for client")
 type ServerItf interface {
 	// Register register this client to server.
 	Register(email string, hackerAddr *net.UDPAddr, msg *hnp.Register) (string, map[string]interface{}, error)
-	// Result // RegResult register result.
+	// Result register result
 	Result(email string, hackerAddr *net.UDPAddr, msg *hnp.Result) (string, map[string]interface{}, error)
 	// CheckEmail check if email belong to register.
 	CheckEmail(email string, hackerAddr *net.UDPAddr, msg *hnp.CheckEmail) (string, map[string]interface{}, error)
 	// Forward send email to another point.
 	Forward(email string, hackerAddr *net.UDPAddr, msg *hnp.Forward) (string, map[string]interface{}, error)
-	// SendMsg send message to the point.
-	SendMsg(email string, hackerAddr *net.UDPAddr, msg *hnp.SendMsg) (string, map[string]interface{}, error)
+	// ForwardMsg send message to the point.
+	ForwardMsg(email string, hackerAddr *net.UDPAddr, msg *hnp.ForwardMsg) (string, map[string]interface{}, error)
 	// HeartJump heart jump just for keep alive.
 	HeartJump(email string, hackerAddr *net.UDPAddr, msg *hnp.HeartJump) (string, map[string]interface{}, error)
 }
+
 // @SMIST setIgnoreInput(false)
 
 // ServerForClientFactory product server for client.
-type ServerForClientFactory func(port int) ServerItf
+type ServerForClientFactory func(port int, email string, callback OnForwardMsg) ServerItf
 
 // SetServerForClientFactory set factory.
 func SetServerForClientFactory(factory ServerForClientFactory) {
@@ -42,13 +43,12 @@ func SetServerForClientFactory(factory ServerForClientFactory) {
 }
 
 // NewServerForClient create.
-func NewServerForClient(port int) ServerItf {
-	return serverForClientFactory(port)
+func NewServerForClient(port int, email string, callback OnForwardMsg) ServerItf {
+	return serverForClientFactory(port, email, callback)
 }
 
-// ClientForClientItf client giver service to another client(client are connected).
-type ClientForClientItf interface {
-}
+// ClientItf client giver service to another client(client are connected).
+type ClientItf interface{}
 
 // writeMsg write message to binder.
 func writeMsg(binder *net.UDPConn, hackerAddr *net.UDPAddr, msg *hmsg.Message) {

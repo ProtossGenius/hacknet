@@ -54,7 +54,6 @@ function proto2GoItf(file, itfName, itfDesc) {
 	pinfo = parse(file);
 	pkg = pinfo.pkg
 	msgs = pinfo.msgs
-
 	for (i in msgs) {
 		msg = msgs[i];
 		if (!msg.desc.startWith('// ' + msg.name)){
@@ -66,7 +65,7 @@ function proto2GoItf(file, itfName, itfDesc) {
 		writeln(msg.name + "(email string, hackerAddr *net.UDPAddr, msg *" + pkg + "." + msg.name + ") (string, map[string]interface{}, error)")
 	}
 
-	write("}\n")
+	write("}\n\n")
 }
 
 function proto2GoSwitch(file, tabs) {
@@ -109,15 +108,17 @@ function proto2GoSwitch(file, tabs) {
 		writeln("}\n")
 		writeln("if _result, err = pack_" + pkg + "_Result(msg.Email, &" + pkg + ".Result{")
 		tabs++;
-		writeln("Enums : " + "int32(smn_dict.EDict_" + pkg + "_" + msg + "), ")
-		writeln("Info : _resp,")
+		writeln("Enums: " + "int32(smn_dict.EDict_" + pkg + "_" + msg + "), ")
+		writeln("Info: _resp,")
 		tabs--;
 		writeln("}); err != nil {")
 		tabs++;
-		writeln('return PackResult,  details{"email" : msg.Email, "_resp": _resp, "error" : err}, wrapError(err)')
+		writeln('return PackResult,  details{"email": msg.Email, "_resp": _resp, "error": err}, wrapError(err)')
 		tabs--;
 		writeln("}\n")
-		writeln("writeMsg(binder, hackerAddr, _result)")
+		if (msg != "ForwardMsg"){
+			writeln("writeMsg(binder, hackerAddr, _result)")
+		}
 		tabs--;
 
 	}
