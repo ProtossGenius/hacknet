@@ -6,6 +6,7 @@ import (
 	"github.com/ProtossGenius/hacknet/hnlog"
 	"github.com/ProtossGenius/hacknet/pb/hmsg"
 	"github.com/ProtossGenius/hacknet/pb/hnp"
+	"github.com/ProtossGenius/hacknet/pinfo"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -16,6 +17,10 @@ proto2GoItf("./protos/hnp.proto", "ServerItf", "server for client")
 */
 // ServerItf server for client.
 type ServerItf interface {
+	// GetUDPConn get server's udp conn.
+	GetUDPConn() *net.UDPConn
+	// GetPointMgr get server's poingMgr.
+	GetPointMgr() pinfo.PointInfoMgrItf
 	// Register register this client to server.
 	Register(email string, hackerAddr *net.UDPAddr, msg *hnp.Register) (string, map[string]interface{}, error)
 	// Result register result
@@ -32,23 +37,21 @@ type ServerItf interface {
 
 // @SMIST setIgnoreInput(false)
 
-// ServerForClientFactory product server for client.
-type ServerForClientFactory func(port int, email string, callback OnForwardMsg) ServerItf
+// ServerFactory product server for client.
+type ServerFactory func(port int, email, pubKey string, onForwardMsg OnForwardMsg,
+	onResultMsg OnResultMsg) ServerItf
 
 // SetServerForClientFactory set factory.
-func SetServerForClientFactory(factory ServerForClientFactory) {
+func SetServerForClientFactory(factory ServerFactory) {
 	if factory != nil {
 		serverForClientFactory = factory
 	}
 }
 
-// NewServerForClient create.
-func NewServerForClient(port int, email string, callback OnForwardMsg) ServerItf {
-	return serverForClientFactory(port, email, callback)
+// NewServer create.
+func NewServer(port int, email, pubKey string, onForwardMsg OnForwardMsg, onResultMsg OnResultMsg) ServerItf {
+	return serverForClientFactory(port, email, pubKey, onForwardMsg, onResultMsg)
 }
-
-// ClientItf client giver service to another client(client are connected).
-type ClientItf interface{}
 
 // writeMsg write message to binder.
 func writeMsg(binder *net.UDPConn, hackerAddr *net.UDPAddr, msg *hmsg.Message) {
@@ -66,9 +69,4 @@ func writeMsg(binder *net.UDPConn, hackerAddr *net.UDPAddr, msg *hmsg.Message) {
 	if err != nil || sendSize != len(data) {
 		hnlog.Error("s4cImpl.write send", details{"sendSize": sendSize, "err": err, "data": data, "msg": msg})
 	}
-}
-
-// addrEquals is addr equals.
-func addrEquals(lhs, rhs *net.UDPAddr) bool {
-	return lhs.IP.Equal(rhs.IP) && lhs.Port == rhs.Port
 }

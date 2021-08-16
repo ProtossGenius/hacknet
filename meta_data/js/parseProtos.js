@@ -54,6 +54,10 @@ function proto2GoItf(file, itfName, itfDesc) {
 	pinfo = parse(file);
 	pkg = pinfo.pkg
 	msgs = pinfo.msgs
+	writeln("// GetUDPConn get server's udp conn.")
+	writeln("GetUDPConn() *net.UDPConn")
+	writeln("// GetPointMgr get server's poingMgr.")
+	writeln("GetPointMgr() pinfo.PointInfoMgrItf")
 	for (i in msgs) {
 		msg = msgs[i];
 		if (!msg.desc.startWith('// ' + msg.name)){
@@ -108,7 +112,7 @@ function proto2GoSwitch(file, tabs) {
 		writeln("}\n")
 		writeln('hnlog.Info("dealPackage", details{"method": "s.' + msg + '", "_resp": _resp, "details": detail, "err": err})\n')
 		
-		if (msg != "ForwardMsg"){
+		if (msg != "Result") {
 			writeln("if _result, err = Pack_" + pkg + "_Result(msg.Email, &" + pkg + ".Result{")
 			tabs++;
 			writeln("Enums: " + "int32(smn_dict.EDict_" + pkg + "_" + msg + "), ")

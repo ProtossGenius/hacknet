@@ -31,10 +31,22 @@ const (
 // s4cImpl ServerItf's impl.
 type s4cImpl struct {
 	pointInfoMgr pinfo.PointInfoMgrItf
-	p2pHelper    pinfo.P2PHelperItf
 	binder       *net.UDPConn
 	email        string
+	// callbacks
 	onForwardMsg OnForwardMsg
+	onResultMsg  OnResultMsg
+	pubKey       string
+}
+
+// GetPointMgr get server's poingMgr.
+func (s *s4cImpl) GetPointMgr() pinfo.PointInfoMgrItf {
+	return s.pointInfoMgr
+}
+
+// GetUDPConn get server's udp conn.
+func (s *s4cImpl) GetUDPConn() *net.UDPConn {
+	return s.binder
 }
 
 // Register register this client to server.
@@ -53,15 +65,19 @@ func (s *s4cImpl) Register(email string, hackerAddr *net.UDPAddr, msg *hnp.Regis
 
 	hnlog.Info("s.Register", details{"email": email, "hackerAddr": hackerAddr, "pubKey": msg.PubKey})
 
+	if regMsg, err := Pack_hnp_Register(s.email, &hnp.Register{PubKey: s.pubKey}); err != nil {
+		writeMsg(s.binder, hackerAddr, regMsg)
+	} else {
+		hnlog.Error("s.Register#Pack_hnp_Register", details{"err": err})
+	}
+
 	return pinfo.GetHackerStatusName(hackerInfo.Status), details{}, nil
 }
 
 // Result register result.
 func (s *s4cImpl) Result(email string, hackerAddr *net.UDPAddr, msg *hnp.Result) (
 	string, map[string]interface{}, error) {
-	hnlog.Info(msg.GetInfo(), details{})
-
-	return "", nil, nil
+	return s.onResultMsg(email, hackerAddr, msg)
 }
 
 // CheckEmail check if email belong to register.
@@ -102,10 +118,13 @@ func (s *s4cImpl) ForwardMsg(email string, hackerAddr *net.UDPAddr, msg *hnp.For
 type OnForwardMsg func(email string, hackerAddr *net.UDPAddr, msg *hnp.ForwardMsg) (
 	string, map[string]interface{}, error)
 
+// OnResultMsg on result msg.
+type OnResultMsg func(email string, hackerAddr *net.UDPAddr, msg *hnp.Result) (
+	string, map[string]interface{}, error)
+
 // HeartJump heart jump just for keep alive.
 func (s *s4cImpl) HeartJump(email string, hackerAddr *net.UDPAddr, msg *hnp.HeartJump) (
 	string, map[string]interface{}, error) {
-	// TODO: should update live time.
 	return "", nil, nil
 }
 
@@ -185,14 +204,6 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 
 		hnlog.Info("dealPackage", details{"method": "s.Result", "_resp": _resp, "details": detail, "err": err})
 
-		if _result, err = Pack_hnp_Result(msg.Email, &hnp.Result{
-			Enums: int32(smn_dict.EDict_hnp_Result), 
-			Info: _resp,
-		}); err != nil {
-			return PackResult,  details{"email": msg.Email, "_resp": _resp, "error": err}, wrapError(err)
-		}
-
-		writeMsg(binder, hackerAddr, _result)
 	case int32(smn_dict.EDict_hnp_CheckEmail):
 		_subMsg := new(hnp.CheckEmail)
 		if err = msg.Msg.UnmarshalTo(_subMsg); err != nil {
@@ -245,6 +256,14 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 
 		hnlog.Info("dealPackage", details{"method": "s.ForwardMsg", "_resp": _resp, "details": detail, "err": err})
 
+		if _result, err = Pack_hnp_Result(msg.Email, &hnp.Result{
+			Enums: int32(smn_dict.EDict_hnp_ForwardMsg), 
+			Info: _resp,
+		}); err != nil {
+			return PackResult,  details{"email": msg.Email, "_resp": _resp, "error": err}, wrapError(err)
+		}
+
+		writeMsg(binder, hackerAddr, _result)
 	case int32(smn_dict.EDict_hnp_HeartJump):
 		_subMsg := new(hnp.HeartJump)
 		if err = msg.Msg.UnmarshalTo(_subMsg); err != nil {
@@ -322,10 +341,10 @@ func check(err error) {
 }
 
 // news4c new s4cImpl.
-func news4c(port int, email string, callback OnForwardMsg) ServerItf {
+func news4c(port int, email, pubKey string, onForwardMsg OnForwardMsg, onResultMsg OnResultMsg) ServerItf {
 	res := &s4cImpl{
-		pointInfoMgr: pinfo.NewPointInfoMgr(), binder: nil, p2pHelper: pinfo.NewP2PHelper(),
-		email: email, onForwardMsg: callback,
+		pointInfoMgr: pinfo.NewPointInfoMgr(), binder: nil,
+		email: email, onForwardMsg: onForwardMsg, onResultMsg: onResultMsg, pubKey: pubKey,
 	}
 
 	// udp bind port
