@@ -164,4 +164,32 @@ function packMsgs(file){
 		writeln("}\n")
 	}
 }
+function proto2Client(file){
+	pinfo = parse(file);
+	pkg = pinfo.pkg;
+	msgs = pinfo.msgs;
+	tabs = 0;
+	writeln = function(str) {
+		writeTabs(tabs);
+		write(str + '\n');
+	}
+
+	for (i in msgs) {
+		msg = msgs[i].name;
+		pmsg = pkg + "_" + msg;
+		pfName = "Pack_" +  pmsg 
+		writeln('// ' + pfName + ' pack message ' + pmsg + ".")
+		writeln("func " + pfName + '(email string, msg *' + pkg + "." + msg + ') (resp *hmsg.Message, err error) {')
+		++tabs;
+		writeln('var any *anypb.Any')
+		writeln('if any, err = ptypes.MarshalAny(msg); err != nil {')
+		++tabs;
+		writeln("return nil, err")
+		--tabs;
+		writeln("}\n")
+		writeln('return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_' + pkg + '_' + msg + '), Msg : any}, nil')
+		--tabs;
+		writeln("}\n")
+	}
+}
 

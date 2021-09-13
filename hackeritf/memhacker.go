@@ -1,0 +1,53 @@
+package hackeritf
+
+import (
+	"net"
+
+	"github.com/ProtossGenius/hacknet/hacknetitf"
+	"github.com/ProtossGenius/hacknet/hnlog"
+	"github.com/ProtossGenius/hacknet/pb/hnp"
+)
+
+func notOnForwardMsg(email string, serverAddr *net.UDPAddr, msg *hnp.ForwardMsg) (
+	string, map[string]interface{}, error) {
+	hnlog.Info("get forwardMsg", hnlog.Fields{"email": email, "serverAddr": serverAddr, "msg": msg})
+
+	return "", nil, nil
+}
+
+func notOnResult(email string, serverAddr *net.UDPAddr, msg *hnp.Result) (
+	string, map[string]interface{}, error) {
+	hnlog.Info("get resultMsg", hnlog.Fields{"email": email, "serverAddr": serverAddr, "msg": msg})
+
+	return "", nil, nil
+}
+
+// memHacker impl HackerItf.
+type memHacker struct {
+	server hacknetitf.ServerItf
+}
+
+// DoHack connect to target client.
+func (m *memHacker) DoHack(targetEmail string, localCmd string, targetCmd string) {
+}
+
+// GetOnForwardMsg get on forward msg for seerverItf use.
+func (m *memHacker) GetOnForwardMsg() hacknetitf.OnForwardMsg {
+	return notOnForwardMsg
+}
+
+// GetOnResultMsg get on result msg for serverItf use.
+func (m *memHacker) GetOnResultMsg() hacknetitf.OnResultMsg {
+	return notOnResult
+}
+
+// SetServer set local server Itf.
+func (m *memHacker) SetServer(server hacknetitf.ServerItf) {
+	m.server = server
+}
+
+func newMemHacker() HackerItf {
+	res := &memHacker{server: nil}
+
+	return res
+}
