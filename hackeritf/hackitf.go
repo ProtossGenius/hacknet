@@ -7,7 +7,7 @@ import (
 // HackerItf client interface, connect to another point and connect or listen.
 type HackerItf interface {
 	// DoHack connect to target client.
-	DoHack(targetEmail, localCmd, targetCmd string)
+	DoHack(localPort int, targetEmail string, targetPort int)
 	// GetOnForwardMsg get on forward msg for seerverItf use.
 	GetOnForwardMsg() hacknetitf.OnForwardMsg
 	// GetOnResultMsg get on result msg for serverItf use.

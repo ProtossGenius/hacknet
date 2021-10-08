@@ -8,8 +8,10 @@ import (
 	"github.com/ProtossGenius/SureMoonNet/basis/smn_file"
 	"github.com/ProtossGenius/hacknet/hacknetitf"
 	"github.com/ProtossGenius/hacknet/hnlog"
+	"github.com/ProtossGenius/hacknet/pb/hnep"
 	"github.com/ProtossGenius/hacknet/pb/hnp"
 	"github.com/ProtossGenius/hacknet/pb/smn_dict"
+	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -92,9 +94,12 @@ func main() {
 
 	server = hacknetitf.NewServer(port, email, pubKey, NotOnForwardMsg, NotOnResult)
 
+	anyMsg, err := ptypes.MarshalAny(&hnep.StrMsg{Msg: "hello"})
+	check(err)
+
 	// the code for test.
 	mfwd, err := hacknetitf.Pack_hnp_ForwardMsg(fromEmail, &hnp.ForwardMsg{
-		FromEmail: fromEmail, FromPort: fromPort, Msg: "hello", FromIp: "127.0.0.5", Enums: int32(smn_dict.EDict_None),
+		FromEmail: fromEmail, FromPort: fromPort, Msg: anyMsg, FromIp: "127.0.0.5", Enums: int32(smn_dict.EDict_None),
 	})
 
 	check(err)

@@ -165,6 +165,7 @@ function packMsgs(file){
 	}
 }
 function proto2Client(file){
+	return;
 	pinfo = parse(file);
 	pkg = pinfo.pkg;
 	msgs = pinfo.msgs;

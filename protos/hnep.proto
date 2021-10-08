@@ -1,0 +1,26 @@
+//hnp.proto hack net protoc.
+
+syntax = "proto3";
+option java_package = "com.suremoon.hacknet.pb";
+option java_outer_classname="hnep";
+option go_package = "github.com/ProtossGenius/hacknet/pb/hnep;hnep";
+package hnep;
+
+// HackAsk hack ask, ask to conn.
+message HackAsk {
+	int32 port = 1;	// witch port want conn. ; -1 = any port.
+	string check = 2; // for check if accept this hack ask.
+	string hackerEmail = 3; // hackerEmail is hacker's email.
+	// Next available id: 4
+}
+
+// BeHackAns be hack ans, accept the hack.
+message BeHackAns {
+	int32 port = 1; // make sure port.
+	string beHackEmail = 2; // beHackEmail its email.
+	// Next available id: 3
+}
+
+message StrMsg {
+	string msg = 1;
+}

@@ -1,10 +1,11 @@
-//cs.proto client to server's protocol.
+//hnp.proto hack net protoc.
 
 syntax = "proto3";
 option java_package = "com.suremoon.hacknet.pb";
 option java_outer_classname="hnp";
 option go_package = "github.com/ProtossGenius/hacknet/pb/hnp;hnp";
 package hnp;
+import "google/protobuf/any.proto";
 
 // Register register this client to server.
 message Register {
@@ -26,7 +27,7 @@ message CheckEmail {
 message Forward {
 	string target = 1; // target hacker's email.
 	int32  enums = 2; // forward message's enums.
-	string msg = 3; // message to send.
+	google.protobuf.Any msg = 3; // message to send.
 	// TODO: another things in future.
 }
 
@@ -36,8 +37,7 @@ message ForwardMsg {
 	string fromIp = 2;
 	int32  fromPort = 3;
 	int32  enums = 4;
-	string msg = 5;
-	// Next available id: 1
+	google.protobuf.Any msg = 5;
 }
 
 // HeartJump heart jump just for keep alive.

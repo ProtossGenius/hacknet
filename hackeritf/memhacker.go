@@ -6,16 +6,27 @@ import (
 	"github.com/ProtossGenius/hacknet/hacknetitf"
 	"github.com/ProtossGenius/hacknet/hnlog"
 	"github.com/ProtossGenius/hacknet/pb/hnp"
+	"github.com/ProtossGenius/hacknet/pb/smn_dict"
 )
 
-func notOnForwardMsg(email string, serverAddr *net.UDPAddr, msg *hnp.ForwardMsg) (
+func onForwardMsg(email string, serverAddr *net.UDPAddr, msg *hnp.ForwardMsg) (
 	string, map[string]interface{}, error) {
 	hnlog.Info("get forwardMsg", hnlog.Fields{"email": email, "serverAddr": serverAddr, "msg": msg})
+
+	switch msg.Enums {
+	case int32(smn_dict.EDict_hnep_HackAsk):
+		{
+		}
+
+	case int32(smn_dict.EDict_hnep_BeHackAns):
+	default:
+		hnlog.Info("undeal msg", hnlog.Fields{"msg": msg})
+	}
 
 	return "", nil, nil
 }
 
-func notOnResult(email string, serverAddr *net.UDPAddr, msg *hnp.Result) (
+func onResult(email string, serverAddr *net.UDPAddr, msg *hnp.Result) (
 	string, map[string]interface{}, error) {
 	hnlog.Info("get resultMsg", hnlog.Fields{"email": email, "serverAddr": serverAddr, "msg": msg})
 
@@ -28,17 +39,17 @@ type memHacker struct {
 }
 
 // DoHack connect to target client.
-func (m *memHacker) DoHack(targetEmail string, localCmd string, targetCmd string) {
+func (m *memHacker) DoHack(localPort int, targetEmail string, targetPort int) {
 }
 
 // GetOnForwardMsg get on forward msg for seerverItf use.
 func (m *memHacker) GetOnForwardMsg() hacknetitf.OnForwardMsg {
-	return notOnForwardMsg
+	return onForwardMsg
 }
 
 // GetOnResultMsg get on result msg for serverItf use.
 func (m *memHacker) GetOnResultMsg() hacknetitf.OnResultMsg {
-	return notOnResult
+	return onResult
 }
 
 // SetServer set local server Itf.

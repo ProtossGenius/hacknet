@@ -3,6 +3,7 @@ package hacknetitf
 
 import (
 	"github.com/ProtossGenius/hacknet/pb/hmsg"
+	"github.com/ProtossGenius/hacknet/pb/hnep"
 	"github.com/ProtossGenius/hacknet/pb/hnp"
 	"github.com/ProtossGenius/hacknet/pb/smn_dict"
 	"github.com/golang/protobuf/ptypes"
@@ -13,6 +14,7 @@ import (
 setIgnoreInput(true);
 include('parseProtos.js');
 packMsgs("./protos/hnp.proto")
+packMsgs("./protos/hnep.proto")
 */
 // Pack_hnp_Register pack message hnp_Register.
 func Pack_hnp_Register(email string, msg *hnp.Register) (resp *hmsg.Message, err error) {
@@ -72,5 +74,35 @@ func Pack_hnp_HeartJump(email string, msg *hnp.HeartJump) (resp *hmsg.Message, e
 	}
 
 	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_hnp_HeartJump), Msg : any}, nil
+}
+
+// Pack_hnep_HackAsk pack message hnep_HackAsk.
+func Pack_hnep_HackAsk(email string, msg *hnep.HackAsk) (resp *hmsg.Message, err error) {
+	var any *anypb.Any
+	if any, err = ptypes.MarshalAny(msg); err != nil {
+		return nil, err
+	}
+
+	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_hnep_HackAsk), Msg : any}, nil
+}
+
+// Pack_hnep_BeHackAns pack message hnep_BeHackAns.
+func Pack_hnep_BeHackAns(email string, msg *hnep.BeHackAns) (resp *hmsg.Message, err error) {
+	var any *anypb.Any
+	if any, err = ptypes.MarshalAny(msg); err != nil {
+		return nil, err
+	}
+
+	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_hnep_BeHackAns), Msg : any}, nil
+}
+
+// Pack_hnep_StrMsg pack message hnep_StrMsg.
+func Pack_hnep_StrMsg(email string, msg *hnep.StrMsg) (resp *hmsg.Message, err error) {
+	var any *anypb.Any
+	if any, err = ptypes.MarshalAny(msg); err != nil {
+		return nil, err
+	}
+
+	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_hnep_StrMsg), Msg : any}, nil
 }
 
