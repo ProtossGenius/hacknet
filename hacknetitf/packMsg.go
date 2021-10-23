@@ -6,6 +6,7 @@ import (
 	"github.com/ProtossGenius/hacknet/pb/hnep"
 	"github.com/ProtossGenius/hacknet/pb/hnp"
 	"github.com/ProtossGenius/hacknet/pb/smn_dict"
+	"github.com/ProtossGenius/hacknet/pb/udpfwd"
 	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/protobuf/types/known/anypb"
 )
@@ -15,6 +16,7 @@ setIgnoreInput(true);
 include('parseProtos.js');
 packMsgs("./protos/hnp.proto")
 packMsgs("./protos/hnep.proto")
+packMsgs("./protos/udpfwd.proto")
 */
 // Pack_hnp_Register pack message hnp_Register.
 func Pack_hnp_Register(email string, msg *hnp.Register) (resp *hmsg.Message, err error) {
@@ -104,5 +106,15 @@ func Pack_hnep_StrMsg(email string, msg *hnep.StrMsg) (resp *hmsg.Message, err e
 	}
 
 	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_hnep_StrMsg), Msg : any}, nil
+}
+
+// Pack_udpfwd_UDPFwdMsg pack message udpfwd_UDPFwdMsg.
+func Pack_udpfwd_UDPFwdMsg(email string, msg *udpfwd.UDPFwdMsg) (resp *hmsg.Message, err error) {
+	var any *anypb.Any
+	if any, err = ptypes.MarshalAny(msg); err != nil {
+		return nil, err
+	}
+
+	return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_udpfwd_UDPFwdMsg), Msg : any}, nil
 }
 

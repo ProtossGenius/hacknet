@@ -16,4 +16,5 @@ enum EDict{
 	hnp_CheckEmail = 8;
 	hnep_StrMsg = 9;
 	hnp_HeartJump = 10;
+	udpfwd_UDPFwdMsg = 11;
 }

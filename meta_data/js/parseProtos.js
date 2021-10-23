@@ -188,7 +188,7 @@ function proto2Client(file){
 		writeln("return nil, err")
 		--tabs;
 		writeln("}\n")
-		writeln('return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_' + pkg + '_' + msg + '), Msg : any}, nil')
+		writeln('return &hmsg.Message{Email: email, Enum: int32(smn_dict.EDict_' + pkg + '_' + msg + '), Msg: any}, nil')
 		--tabs;
 		writeln("}\n")
 	}

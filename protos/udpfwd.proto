@@ -1,0 +1,16 @@
+//udpfwd.proto udp port forward.
+
+syntax = "proto3";
+option java_package = "com.suremoon.hacknet.pb";
+option java_outer_classname="udpfwd";
+option go_package = "github.com/ProtossGenius/hacknet/pb/udpfwd;udpfwd";
+package udpfwd;
+
+// UDPFwdMsg the msg send out.
+message UDPFwdMsg {
+	int32 port = 1; // connector's port.
+	string IP = 2;  // connector's IP.
+	bytes msg = 3; // message to send.
+	
+	// Next available id: 1
+}
