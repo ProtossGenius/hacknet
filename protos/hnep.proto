@@ -8,9 +8,10 @@ package hnep;
 
 // HackAsk hack ask, ask to conn.
 message HackAsk {
-	int32 port = 1;	// witch port want conn. ; -1 = any port.
+	int32 localPort = 1;	// local port.
 	string check = 2; // for check if accept this hack ask.
-	string hackerEmail = 3; // hackerEmail is hacker's email.
+	string hackerEmail = 3; // hacker's email.
+	int32 targetPort = 4;  // target port.
 	// Next available id: 4
 }
 

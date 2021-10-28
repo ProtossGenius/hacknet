@@ -30,6 +30,10 @@ func onResult(email string, serverAddr *net.UDPAddr, msg *hnp.Result) (
 	string, map[string]interface{}, error) {
 	hnlog.Info("get resultMsg", hnlog.Fields{"email": email, "serverAddr": serverAddr, "msg": msg})
 
+	if msg.Enums == int32(smn_dict.EDict_hnep_StrMsg) {
+		// anything.
+	}
+
 	return "", nil, nil
 }
 
@@ -38,7 +42,7 @@ type memHacker struct {
 	server hacknetitf.ServerItf
 }
 
-// DoHack connect to target client.
+// DoHack connect two port.
 func (m *memHacker) DoHack(localPort int, targetEmail string, targetPort int) {
 }
 
