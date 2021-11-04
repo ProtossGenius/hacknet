@@ -11,8 +11,8 @@ import (
 	"github.com/ProtossGenius/hacknet/pb/hnep"
 	"github.com/ProtossGenius/hacknet/pb/hnp"
 	"github.com/ProtossGenius/hacknet/pb/smn_dict"
-	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 func NotOnForwardMsg(email string, serverAddr *net.UDPAddr, msg *hnp.ForwardMsg) (
@@ -94,7 +94,7 @@ func main() {
 
 	server = hacknetitf.NewServer(port, email, pubKey, NotOnForwardMsg, NotOnResult)
 
-	anyMsg, err := ptypes.MarshalAny(&hnep.StrMsg{Msg: "hello"})
+	anyMsg, err := anypb.New(&hnep.StrMsg{Msg: "hello"})
 	check(err)
 
 	// the code for test.

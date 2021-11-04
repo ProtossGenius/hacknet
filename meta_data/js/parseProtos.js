@@ -154,7 +154,7 @@ function packMsgs(file){
 		writeln("func " + pfName + '(email string, msg *' + pkg + "." + msg + ') (resp *hmsg.Message, err error) {')
 		++tabs;
 		writeln('var any *anypb.Any')
-		writeln('if any, err = ptypes.MarshalAny(msg); err != nil {')
+		writeln('if any, err = anypb.New(msg); err != nil {')
 		++tabs;
 		writeln("return nil, err")
 		--tabs;
@@ -183,7 +183,7 @@ function proto2Client(file){
 		writeln("func " + pfName + '(email string, msg *' + pkg + "." + msg + ') (resp *hmsg.Message, err error) {')
 		++tabs;
 		writeln('var any *anypb.Any')
-		writeln('if any, err = ptypes.MarshalAny(msg); err != nil {')
+		writeln('if any, err = anypb.New(msg); err != nil {')
 		++tabs;
 		writeln("return nil, err")
 		--tabs;
