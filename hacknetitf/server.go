@@ -95,7 +95,7 @@ func (s *s4cImpl) Forward(email string, hackerAddr *net.UDPAddr, msg *hnp.Forwar
 	}
 
 	resp, err := Pack_hnp_ForwardMsg(s.email, &hnp.ForwardMsg{
-		FromEmail: email, FromIp: string(hackerAddr.IP),
+		FromEmail: email, FromIp: hackerAddr.IP.String(),
 		Msg: msg.Msg, FromPort: int32(hackerAddr.Port),
 		Enums: msg.Enums,
 	})
@@ -130,7 +130,7 @@ func (s *s4cImpl) HeartJump(email string, hackerAddr *net.UDPAddr, msg *hnp.Hear
 
 func (s *s4cImpl) findHacker(email string) *pinfo.PointInfo {
 	hacker := s.pointInfoMgr.FindHacker(email)
-	if hacker.Status != pinfo.HackerStatusLive {
+	if hacker == nil || hacker.Status != pinfo.HackerStatusLive {
 		return nil
 	}
 

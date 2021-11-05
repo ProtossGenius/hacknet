@@ -104,8 +104,8 @@ func main() {
 	check(err)
 
 	// the code for test.
-	mfwd, err := hacknetitf.Pack_hnp_ForwardMsg(fromEmail, &hnp.ForwardMsg{
-		FromEmail: fromEmail, FromPort: fromPort, Msg: anyMsg, FromIp: "127.0.0.1", Enums: int32(smn_dict.EDict_hnep_StrMsg),
+	mfwd, err := hacknetitf.Pack_hnp_Forward(fromEmail, &hnp.Forward{
+		Target: fromEmail, Msg: anyMsg, Enums: int32(smn_dict.EDict_hnep_StrMsg),
 	})
 
 	check(err)
