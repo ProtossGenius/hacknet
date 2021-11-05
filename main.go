@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"net"
 	"time"
 
@@ -15,13 +16,17 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
+// NotOnForwardMsg only write info.
 func NotOnForwardMsg(email string, serverAddr *net.UDPAddr, msg *hnp.ForwardMsg) (
 	string, map[string]interface{}, error) {
 	hnlog.Info("get callback", hnlog.Fields{"email": email, "serverAddr": serverAddr, "msg": msg})
+	str := &hnep.StrMsg{}
+	check(msg.Msg.UnmarshalTo(str))
 
-	return "", nil, nil
+	return "recv msg : " + str.Msg, nil, nil
 }
 
+// ClientOnForwardMsg do register.
 func ClientOnForwardMsg(email string, serverAddr *net.UDPAddr, msg *hnp.ForwardMsg) (
 	string, map[string]interface{}, error) {
 	hnlog.Info("get callback", hnlog.Fields{"email": email, "serverAddr": serverAddr, "msg": msg})
@@ -34,6 +39,7 @@ func ClientOnForwardMsg(email string, serverAddr *net.UDPAddr, msg *hnp.ForwardM
 	return "", nil, nil
 }
 
+// NotOnResult .
 func NotOnResult(email string, serverAddr *net.UDPAddr, msg *hnp.Result) (
 	string, map[string]interface{}, error) {
 	hnlog.Info("get callback", hnlog.Fields{"email": email, "serverAddr": serverAddr, "msg": msg})
@@ -99,7 +105,7 @@ func main() {
 
 	// the code for test.
 	mfwd, err := hacknetitf.Pack_hnp_ForwardMsg(fromEmail, &hnp.ForwardMsg{
-		FromEmail: fromEmail, FromPort: fromPort, Msg: anyMsg, FromIp: "127.0.0.5", Enums: int32(smn_dict.EDict_None),
+		FromEmail: fromEmail, FromPort: fromPort, Msg: anyMsg, FromIp: "127.0.0.1", Enums: int32(smn_dict.EDict_hnep_StrMsg),
 	})
 
 	check(err)
@@ -111,6 +117,8 @@ func main() {
 	msg, err := proto.Marshal(mreg)
 	check(err)
 	write(h1, port, msg)
+	time.Sleep(time.Second)
+	fmt.Println("--------------------------split------------------------")
 	msg, err = proto.Marshal(mfwd)
 	check(err)
 	write(h1, port, msg)

@@ -65,7 +65,7 @@ func (s *s4cImpl) Register(email string, hackerAddr *net.UDPAddr, msg *hnp.Regis
 
 	hnlog.Info("s.Register", details{"email": email, "hackerAddr": hackerAddr, "pubKey": msg.PubKey})
 
-	if regMsg, err := Pack_hnp_Register(s.email, &hnp.Register{PubKey: s.pubKey}); err != nil {
+	if regMsg, err := Pack_hnp_Register(s.email, &hnp.Register{PubKey: s.pubKey}); err == nil {
 		writeMsg(s.binder, hackerAddr, regMsg)
 	} else {
 		hnlog.Error("s.Register#Pack_hnp_Register", details{"err": err})
@@ -156,12 +156,12 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 	hnlog.Info("accept data", logrus.Fields{"remoteAddr": hackerAddr, "message": msg, "hackerInfo": hackerInfo})
 
 	if msg.Enum != int32(smn_dict.EDict_hnp_Register) && hackerInfo == nil {
-		return "check hackerInfo, not exist", details{"email": msg.Email}, wrapError(ErrNoSuchHacker)
+		return "check hackerInfo, not exist", details{"email": msg.Email, "msg.Enum": msg.Enum}, wrapError(ErrNoSuchHacker)
 	}
 
 	// @SMIST include("parseProtos.js"); proto2GoSwitch("./protos/hnp.proto", 1)
 	const (
-		PackResult = "packResult"
+		PackResult      = "packResult"
 		UnmarshalMsgMsg = "Unmarshal msg.Msg"
 	)
 
@@ -185,10 +185,10 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 		hnlog.Info("dealPackage", details{"method": "s.Register", "_resp": _resp, "details": detail, "err": err})
 
 		if _result, err = Pack_hnp_Result(msg.Email, &hnp.Result{
-			Enums: int32(smn_dict.EDict_hnp_Register), 
-			Info: _resp,
+			Enums: int32(smn_dict.EDict_hnp_Register),
+			Info:  _resp,
 		}); err != nil {
-			return PackResult,  details{"email": msg.Email, "_resp": _resp, "error": err}, wrapError(err)
+			return PackResult, details{"email": msg.Email, "_resp": _resp, "error": err}, wrapError(err)
 		}
 
 		writeMsg(binder, hackerAddr, _result)
@@ -217,10 +217,10 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 		hnlog.Info("dealPackage", details{"method": "s.CheckEmail", "_resp": _resp, "details": detail, "err": err})
 
 		if _result, err = Pack_hnp_Result(msg.Email, &hnp.Result{
-			Enums: int32(smn_dict.EDict_hnp_CheckEmail), 
-			Info: _resp,
+			Enums: int32(smn_dict.EDict_hnp_CheckEmail),
+			Info:  _resp,
 		}); err != nil {
-			return PackResult,  details{"email": msg.Email, "_resp": _resp, "error": err}, wrapError(err)
+			return PackResult, details{"email": msg.Email, "_resp": _resp, "error": err}, wrapError(err)
 		}
 
 		writeMsg(binder, hackerAddr, _result)
@@ -237,10 +237,10 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 		hnlog.Info("dealPackage", details{"method": "s.Forward", "_resp": _resp, "details": detail, "err": err})
 
 		if _result, err = Pack_hnp_Result(msg.Email, &hnp.Result{
-			Enums: int32(smn_dict.EDict_hnp_Forward), 
-			Info: _resp,
+			Enums: int32(smn_dict.EDict_hnp_Forward),
+			Info:  _resp,
 		}); err != nil {
-			return PackResult,  details{"email": msg.Email, "_resp": _resp, "error": err}, wrapError(err)
+			return PackResult, details{"email": msg.Email, "_resp": _resp, "error": err}, wrapError(err)
 		}
 
 		writeMsg(binder, hackerAddr, _result)
@@ -257,10 +257,10 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 		hnlog.Info("dealPackage", details{"method": "s.ForwardMsg", "_resp": _resp, "details": detail, "err": err})
 
 		if _result, err = Pack_hnp_Result(msg.Email, &hnp.Result{
-			Enums: int32(smn_dict.EDict_hnp_ForwardMsg), 
-			Info: _resp,
+			Enums: int32(smn_dict.EDict_hnp_ForwardMsg),
+			Info:  _resp,
 		}); err != nil {
-			return PackResult,  details{"email": msg.Email, "_resp": _resp, "error": err}, wrapError(err)
+			return PackResult, details{"email": msg.Email, "_resp": _resp, "error": err}, wrapError(err)
 		}
 
 		writeMsg(binder, hackerAddr, _result)
@@ -277,10 +277,10 @@ func (s *s4cImpl) dealPackage(msg *hmsg.Message, hackerAddr *net.UDPAddr,
 		hnlog.Info("dealPackage", details{"method": "s.HeartJump", "_resp": _resp, "details": detail, "err": err})
 
 		if _result, err = Pack_hnp_Result(msg.Email, &hnp.Result{
-			Enums: int32(smn_dict.EDict_hnp_HeartJump), 
-			Info: _resp,
+			Enums: int32(smn_dict.EDict_hnp_HeartJump),
+			Info:  _resp,
 		}); err != nil {
-			return PackResult,  details{"email": msg.Email, "_resp": _resp, "error": err}, wrapError(err)
+			return PackResult, details{"email": msg.Email, "_resp": _resp, "error": err}, wrapError(err)
 		}
 
 		writeMsg(binder, hackerAddr, _result)
