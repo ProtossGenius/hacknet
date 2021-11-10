@@ -11,7 +11,7 @@ debug:
 
 qrun: prebuild
 test:
-
+	go test ./utest
 install:
 
 clean:

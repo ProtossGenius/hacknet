@@ -3,8 +3,8 @@ module github.com/ProtossGenius/hacknet
 go 1.16
 
 require (
-	github.com/ProtossGenius/SureMoonNet v0.0.0-20210125072611-ca7c15875a67
-	github.com/golang/protobuf v1.5.0
+	github.com/ProtossGenius/SureMoonNet v0.0.0-20211110150929-575674f90389
+	github.com/ProtossGenius/smnric v0.0.0-20211110152136-275ea89b0321
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0 // indirect
 	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069 // indirect
