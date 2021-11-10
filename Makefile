@@ -15,5 +15,3 @@ test:
 install:
 
 clean:
-	rm -rf ./pb
-	rm -rf ./cltimpl
