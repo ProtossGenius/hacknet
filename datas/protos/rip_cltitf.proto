@@ -1,0 +1,16 @@
+syntax = "proto3";
+	option java_package = "pb";
+	option java_outer_classname="rip_cltitf";
+	option go_package = "github.com/ProtossGenius/hacknet/pb/rip_cltitf;rip_cltitf";
+	package rip_cltitf;
+message CltOperItf_SendForward_Prm {
+	string email = 1;
+	bytes data = 2;
+}
+message CltOperItf_SendForward_Ret {
+}
+message CltOperItf_OnForward_Prm {
+	bytes data = 1;
+}
+message CltOperItf_OnForward_Ret {
+}

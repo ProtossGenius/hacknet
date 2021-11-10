@@ -17,4 +17,11 @@ enum EDict{
 	hnep_StrMsg = 9;
 	hnp_HeartJump = 10;
 	udpfwd_UDPFwdMsg = 11;
+	rip_cltitf_CltOperItf_SendForward_Ret = 12;
+	rip_cltitf_CltOperItf_OnForward_Prm = 13;
+	rip_cltitf_CltOperItf_OnForward_Ret = 14;
+	rip_cltitf_CltOperItf_SendForward_Prm = 15;
+	smn_base_Call = 16;
+	smn_base_Ret = 17;
+	smn_base_FPkg = 18;
 }

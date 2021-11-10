@@ -1,0 +1,8 @@
+{
+    "src":"./",
+    "itf_path":"./cltitf",
+    "target":{"go_ac":"./cltimpl/cltric","go_s":"./cltimpl/svrric", "go_pb":"/tmp/"},
+    "proto_path":"./datas/protos",
+    "out_path":"./cltric",
+    "module":"github.com/ProtossGenius/hacknet"
+}

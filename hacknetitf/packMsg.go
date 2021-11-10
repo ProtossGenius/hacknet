@@ -13,9 +13,9 @@ import (
 /*@SMIST
 setIgnoreInput(true);
 include('parseProtos.js');
-packMsgs("./protos/hnp.proto")
-packMsgs("./protos/hnep.proto")
-packMsgs("./protos/udpfwd.proto")
+packMsgs("./datas/protos/hnp.proto")
+packMsgs("./datas/protos/hnep.proto")
+packMsgs("./datas/protos/udpfwd.proto")
 */
 // Pack_hnp_Register pack message hnp_Register.
 func Pack_hnp_Register(email string, msg *hnp.Register) (resp *hmsg.Message, err error) {

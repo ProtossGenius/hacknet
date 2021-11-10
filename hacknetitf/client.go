@@ -4,5 +4,5 @@ package hacknetitf
 /*@SMIST
 setIgnoreInput(true);
 include('parseProtos.js');
-proto2Client("./protos/hnp.proto")
+proto2Client("./datas/protos/hnp.proto")
 */

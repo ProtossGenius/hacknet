@@ -13,7 +13,7 @@ import (
 /*@SMIST
 include("parseProtos.js");
 setIgnoreInput(true);
-proto2GoItf("./protos/hnp.proto", "ServerItf", "server for client")
+proto2GoItf("./datas/protos/hnp.proto", "ServerItf", "server for client")
 */
 // ServerItf server for client.
 type ServerItf interface {
