@@ -24,4 +24,8 @@ enum EDict{
 	smn_base_Call = 16;
 	smn_base_Ret = 17;
 	smn_base_FPkg = 18;
+	hnp_to send. = 19;
+	hnp_'s enums. = 20;
+	//hnp_to the point. = 21;
+	udpfwd_to send. = 22;
 }
