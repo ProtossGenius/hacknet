@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 public class Pipeline<In, Out> implements IPipeline<In, Out> {
   String name;
   IPipeline<In, Out> action;
-  IPipeline previous;
+  Pipeline previous;
   boolean calcTime = false;
 
   public Pipeline(String name, boolean calcTime, Function<ExecutorService, Out> action) {
@@ -43,11 +43,22 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
     this(name, false, action);
   }
 
-  private Pipeline(String name, IPipeline previous, boolean calcTime, IPipeline<In, Out> action) {
+  private Pipeline(String name, Pipeline previous, boolean calcTime, IPipeline<In, Out> action) {
     this.name = name;
     this.previous = previous;
     this.calcTime = calcTime;
     this.action = action;
+  }
+
+  public void setCalcTime(boolean calcTime) {
+    if (calcTime == this.calcTime) {
+      return;
+    }
+
+    this.calcTime = calcTime;
+    if (this.previous != null) {
+      this.previous.setCalcTime(calcTime);
+    }
   }
 
   // 进入下一个流程
@@ -76,11 +87,11 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
   public <Sub, NewOut> Pipeline<Out, List<NewOut>> thenBatch(String name,
                                                              BiConsumer<Out, Consumer<Sub>> looper,
                                                              BiConsumer<String, Exception> onException,
-                                                             IPipeline<Sub, NewOut> action) {
+                                                             BatchFunc<Out, NewOut, Sub> action) {
     return new Pipeline<>(name, this, this.calcTime, (executorService, param, store) -> {
       WorkGroup workGroup = new WorkGroup(executorService);
       looper.accept(param, sub ->
-          workGroup.add(name + ":" + sub, () -> action.execute(executorService, sub, store))
+          workGroup.add(name + ":" + sub, () -> action.batchExec(executorService, param, sub, store))
       );
       return workGroup.waitAllFinishAndGetResult(onException);
     });
@@ -90,6 +101,7 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
     return execute(executorService, 1, store);
   }
 
+  // in 为null表示跳过该流程及所有后续流程
   @Override
   public Out execute(ExecutorService executorService, Object in, IStore store) throws RuntimeException {
     if (previous != null) {
@@ -98,6 +110,7 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
 
     // 如果上一步流程返回null表示流程终止，下面的都不再执行
     if (in == null) {
+      log.warn("pipeline stop because [{}]'s input is null.", name);
       return null;
     }
 
@@ -107,7 +120,7 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
       out = action.execute(executorService, (In) in, store);
     }
     if (calcTime) {
-      log.info("{} cost time = {} ms", name, (System.nanoTime() - start) / 1e6);
+      log.info("{} pipeline cost time = {} ms", name, (System.nanoTime() - start) / 1e6);
     }
     return out;
   }

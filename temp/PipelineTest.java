@@ -69,7 +69,7 @@ public class PipelineTest {
     boolean calcTime = false; // 是否打印流程耗时
     // 子流程获得 result.D
     final Pipeline<?, List<Integer>> getD = new Pipeline<>("get d", calcTime, exe -> getList()) // 获得List
-        .thenBatch("batch", Iterable::forEach, log::error, (e, str, s) -> getD((String) str)); // 批量处理List，转化为需要的D
+        .thenBatch("batch", Iterable::forEach, log::error, (e, list, str, s) -> getD((String) str)); // 批量处理List，转化为需要的D
     // 主流程
     Pipeline pipeline = new Pipeline<>("get list", calcTime, executorService -> -1)
         .thenMerge("merge", Result::new, log::error,
