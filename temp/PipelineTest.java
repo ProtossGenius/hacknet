@@ -56,7 +56,7 @@ public class PipelineTest {
       res.setB(getB());//15
       res.setC(getC());//20
       List<String> l = getList();//5
-      WorkGroup wg = new WorkGroup(EXECUTOR);
+      WorkGroup<Integer> wg = new WorkGroup<>(EXECUTOR);
       l.forEach(it -> wg.add(it, () -> this.getD(it)));// 微> 3
       res.setD(wg.waitAllFinishAndGetResult(log::error));
       submit(res);// 15

@@ -11,18 +11,29 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * 流程
+ * 流程（管道）
  *
- * @param <In>
- * @param <Out>
+ * @param <In> 入参
+ * @param <Out> 出参
  */
 @Slf4j
 public class Pipeline<In, Out> implements IPipeline<In, Out> {
+  // 流程名
   String name;
+  // 流程要做的事
   IPipeline<In, Out> action;
+  // 前一个流程
   Pipeline previous;
+  // 是否计算执行时间
   boolean calcTime = false;
 
+  /**
+   * 用于第一个流程，第一个流程或许是不需要入参的
+   *
+   * @param name 流程名
+   * @param calcTime 是否计算执行时间
+   * @param action 动作
+   */
   public Pipeline(String name, boolean calcTime, Function<ExecutorService, Out> action) {
     this.calcTime = calcTime;
     this.name = name;
@@ -33,6 +44,12 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
     this(name, false, action);
   }
 
+  /**
+   *
+   * @param name 流程名
+   * @param calcTime 是否计算执行时间
+   * @param action 动作
+   */
   public Pipeline(String name, boolean calcTime, IPipeline<In, Out> action) {
     this.calcTime = calcTime;
     this.name = name;
@@ -43,6 +60,13 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
     this(name, false, action);
   }
 
+  /**
+   * 用于连接流程
+   * @param name 流程名
+   * @param previous 前一个流程
+   * @param calcTime 是否计算执行时间
+   * @param action 动作
+   */
   private Pipeline(String name, Pipeline previous, boolean calcTime, IPipeline<In, Out> action) {
     this.name = name;
     this.previous = previous;
@@ -50,6 +74,10 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
     this.action = action;
   }
 
+  /**
+   * 设置是否计算流程耗时
+   * @param calcTime
+   */
   public void setCalcTime(boolean calcTime) {
     if (calcTime == this.calcTime) {
       return;
@@ -61,18 +89,34 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
     }
   }
 
-  // 进入下一个流程
-  public <NewOut> Pipeline<Out, NewOut> then(String name, IPipeline<Out, NewOut> action) {
+  /**
+   *   进入下一个流程（在执行时，下一个流程的入参是当前流程的出参）
+   * @param name 下一个流程名
+   * @param action 下一个流程的动作
+   * @param <NewOut> 下一个流程的出参
+   * @return 下一个流程
+   */
+ public <NewOut> Pipeline<Out, NewOut> then(String name, IPipeline<Out, NewOut> action) {
     return new Pipeline<>(name, this, this.calcTime, action);
   }
 
-  // 可以并行执行的任务，各个的运行结果拼接到createResult创建的result中
-  public <NewOut> Pipeline<Out, NewOut> thenMerge(String name,
+
+  /**
+   * 可以拆分执行的任务，各个的运行结果拼接到createResult创建的result中
+   * @param name 下一个流程名
+   * @param createResult 因为是拼接到结果中，所以需要提前生成出参
+   * @param onException  处理异常
+   * @param mergeFuncs   被拆分的任务
+   * @param <NewOut>     下一个流程的出参
+   * @return             下一个流程
+   */
+  @SafeVarargs
+  final public <NewOut> Pipeline<Out, NewOut> thenMerge(String name,
                                                   Supplier<NewOut> createResult,
                                                   BiConsumer<String, Exception> onException,
                                                   MergeFunc<Out, NewOut>... mergeFuncs) {
     return new Pipeline<>(name, this, this.calcTime, (executorService, param, store) -> {
-      WorkGroup workGroup = new WorkGroup(executorService);
+      WorkGroup<NewOut> workGroup = new WorkGroup<>(executorService);
       NewOut result = createResult.get();
       int pos = 0;
       for (MergeFunc<Out, NewOut> mergeFunc : mergeFuncs) {
@@ -83,13 +127,25 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
     });
   }
 
-  // 批量执行，返回一个数组
+
+  /**
+   * 下一个流程将批量处理当前流程的产出，并返回一个数组
+   *
+   * @param name 下一个流程名
+   * @param looper 遍历函数，有两个入参，入参1是当前流程的产出，入参2是将入参1分解为批量处理的单元对象。
+   *               函数的任务是对入参1中每个需要批量处理的单元对象执行 Consumer<Sub>
+   * @param onException 异常处理
+   * @param action 对单元类型的处理
+   * @param <Sub> 下个流程入参可被批量处理的单元类型
+   * @param <NewOut> 下个流程的产出单元类型，下个流程的产出是该产出单元类型的List
+   * @return 下个流程
+   */
   public <Sub, NewOut> Pipeline<Out, List<NewOut>> thenBatch(String name,
                                                              BiConsumer<Out, Consumer<Sub>> looper,
                                                              BiConsumer<String, Exception> onException,
                                                              BatchFunc<Out, NewOut, Sub> action) {
     return new Pipeline<>(name, this, this.calcTime, (executorService, param, store) -> {
-      WorkGroup workGroup = new WorkGroup(executorService);
+      WorkGroup<NewOut> workGroup = new WorkGroup<>(executorService);
       looper.accept(param, sub ->
           workGroup.add(name + ":" + sub, () -> action.batchExec(executorService, param, sub, store))
       );
@@ -97,11 +153,25 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
     });
   }
 
+  /**
+   * 无入参执行流程（就算没有入参也需要传入一个非null的值）
+   * @param executorService 线程池
+   * @param store 所有流程共用的处理类
+   * @return 出参（注意，这是最后一个流程的出参）
+   */
   public Out execute(ExecutorService executorService, IStore store) {
     return execute(executorService, 1, store);
   }
 
-  // in 为null表示跳过该流程及所有后续流程
+  /**带参数执行流程
+   *  in 为null表示跳过该流程及所有后续流程
+   *
+   * @param executorService  线程池
+   * @param in 入参（注意，这是第一个流程的入参）
+   * @param store 所有流程共用的处理类
+   * @return 出参（注意，这是最后一个流程的出参）
+   * @throws RuntimeException 运行时错误，onException可能抛出运行时错误，用以打断流程
+   */
   @Override
   public Out execute(ExecutorService executorService, Object in, IStore store) throws RuntimeException {
     if (previous != null) {
