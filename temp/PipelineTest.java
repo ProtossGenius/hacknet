@@ -76,7 +76,9 @@ public class PipelineTest {
             (es, list, sto, result) -> result.setA(getA()), // 获得A
             (es, list, sto, result) -> result.setB(getB()), // 获得B
             (es, list, sto, result) -> result.setC(getC()), // 获得C
-            (es, list, sto, result) -> result.setD(getD.execute(es, sto)) // 调用子流程 获得D
+            (es, list, sto, result) -> getD.execute(es, sto, d -> {
+              result.setD(d);
+            }) // 调用子流程 获得D
         )
         .then("submit", (e, result, s) -> { // 提交
           this.submit(result);
@@ -122,10 +124,13 @@ public class PipelineTest {
 
   @Test
   public void testAsFunc() {
-    Pipeline<?, String> pipeline = new Pipeline<>("test get value", (executorService, i, s) -> "input is " + i.toString())
-        .then("add", (executorService, str, s) -> str + ((ValueStore)s).getEnd());
+    Pipeline pipeline = new Pipeline<>("test get value", (executorService, i, s) -> "input is " + i.toString())
+        .then("exception", (executorService, str, s) -> {
+          throw new RuntimeException("hh");
+        })
+        .then("add", (executorService, str, s) -> str + ((ValueStore) s).getEnd());
     //ValueStore可以贯穿整个流程
-    log.info(pipeline.execute(EXECUTOR, 15, new ValueStore()));
+    log.info((String) pipeline.blockExecute(EXECUTOR, 15, new ValueStore()));
     //    19:32:52.568 [main] INFO com.yqg.recall.core.utils.PipelineTest - input is 15!
   }
 
