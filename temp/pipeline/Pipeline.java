@@ -37,7 +37,7 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
   public Pipeline(String name, boolean calcTime, Function<ExecutorService, Out> action) {
     this.calcTime = calcTime;
     this.name = name;
-    this.action = (executorService, in, store, cb) -> action.apply(executorService);
+    this.action = (executorService, in, store, cb) -> cb.accept(action.apply(executorService));
   }
 
   public Pipeline(String name, Function<ExecutorService, Out> action) {
@@ -107,6 +107,7 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
   }
 
   public <NewOut> Pipeline<Out, NewOut> then(String name, Pipeline action) {
+    action.previous.name = name;
     action.previous = this;
     return action;
   }
@@ -131,7 +132,7 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
       NewOut result = createResult.get();
       int pos = 0;
       for (MergeFunc<Out, NewOut> mergeFunc : mergeFuncs) {
-        callbackGroup.add(name + ":" + pos, () -> mergeFunc.mergeExec(executorService, param, store, result));
+        callbackGroup.add(name + ":" + (pos++), () -> mergeFunc.mergeExec(executorService, param, store, result));
       }
       callbackGroup.execute(onException, nth -> {
         cb.accept(result);
@@ -161,7 +162,9 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
           callbackGroup.add(name + ":" + sub, () -> action.batchExec(executorService, param, sub, store))
       );
 
-      callbackGroup.execute(onException, cb);
+      callbackGroup.execute(onException, (List<NewOut> list) -> {
+        cb.accept(list);
+      });
     });
   }
 
@@ -185,11 +188,11 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
     });
   }
 
-  public Out blockExecute(ExecutorService executorService, In in, IStore iStore) throws RuntimeException {
+  public Out blockExecute(ExecutorService executorService, Object in, IStore iStore) throws RuntimeException {
     final Box<Out> box = new Box<>();
     NonReentrantLockByWait lock = new NonReentrantLockByWait();
     lock.lock();
-    execute(executorService, in, iStore, out -> {
+    execute(executorService, (In) in, iStore, out -> {
       lock.unlock();
       box.setValue(out);
     });
@@ -213,7 +216,6 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
       RuntimeException {
     if (previous != null) {
       executorService.submit(() -> previous.execute(executorService, in, store, param -> {
-// 如果上一步流程返回null表示流程终止，下面的都不再执行
         doAction(executorService, (In) param, store, callback);
       }));
 
@@ -236,6 +238,8 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
         log.error("in pipeline {}, error happened", name, e);
         callback.accept(null);
       }
+    } else {
+      log.error("pipeline {}, action is null", name);
     }
     if (calcTime) {
       log.info("{} pipeline cost time = {} ms", name, (System.nanoTime() - start) / 1e6);

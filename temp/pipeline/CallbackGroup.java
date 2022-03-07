@@ -32,7 +32,7 @@ public class CallbackGroup {
         runnable.run();
       } finally {
         if (count.addAndGet(-1) == 0 && callback != null) {
-          callback.accept(futureInfos);
+          service.submit(() -> callback.accept(futureInfos));
         }
       }
       return 1;
@@ -45,7 +45,7 @@ public class CallbackGroup {
         return runnable.call();
       } finally {
         if (count.addAndGet(-1) == 0 && callback != null) {
-          callback.accept(futureInfos);
+          service.submit(() -> callback.accept(futureInfos));
         }
       }
     }));
@@ -70,6 +70,7 @@ public class CallbackGroup {
         return null;
       }
     }).collect(Collectors.toList()));
+
     run();
   }
 }

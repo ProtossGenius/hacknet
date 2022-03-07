@@ -23,11 +23,11 @@ public class PipelineTest {
   private static final ExecutorService EXECUTOR = ExecutorServiceTraceContextWrapper.wrap(
       ExecutorServiceMdcTraceIdWrapper.wrap(
           new ThreadPoolExecutor(
-              200,
-              200,
+              2,
+              2,
               0,
               TimeUnit.MILLISECONDS,
-              new LinkedBlockingDeque<>(100),
+              new LinkedBlockingDeque<>(),
               new ThreadFactoryBuilder().setNameFormat("StrategyRun-pool-%d").build(),
               new ThreadPoolExecutor.CallerRunsPolicy()),
           "trace_id"
@@ -76,9 +76,8 @@ public class PipelineTest {
             (es, list, sto, result) -> result.setA(getA()), // 获得A
             (es, list, sto, result) -> result.setB(getB()), // 获得B
             (es, list, sto, result) -> result.setC(getC()), // 获得C
-            (es, list, sto, result) -> getD.execute(es, sto, d -> {
-              result.setD(d);
-            }) // 调用子流程 获得D
+            (es, list, sto, result) -> result.setD(getD.blockExecute(es, 1, sto)
+            ) // 调用子流程 获得D
         )
         .then("submit", (e, result, s) -> { // 提交
           this.submit(result);
@@ -91,7 +90,7 @@ public class PipelineTest {
   public void testPipeline(Pipeline pipeline) {
     long start = System.nanoTime();
     try {
-      pipeline.execute(EXECUTOR, null);
+      pipeline.blockExecute(EXECUTOR, -1, null);
     } finally {
       log.info("testPipeline 's time cost = " + (System.nanoTime() - start) / 1e6 + " ms");
     }
@@ -128,7 +127,11 @@ public class PipelineTest {
         .then("exception", (executorService, str, s) -> {
           throw new RuntimeException("hh");
         })
-        .then("add", (executorService, str, s) -> str + ((ValueStore) s).getEnd());
+        .then("add", (executorService, str, s) -> str + ((ValueStore) s).getEnd())
+        .thenMerge("merge", ()->15, log::error,
+            (executorService, s, store, o) -> log.info("a"),
+            (executorService, s, store, o) -> log.info("b")
+        );
     //ValueStore可以贯穿整个流程
     log.info((String) pipeline.blockExecute(EXECUTOR, 15, new ValueStore()));
     //    19:32:52.568 [main] INFO com.yqg.recall.core.utils.PipelineTest - input is 15!
