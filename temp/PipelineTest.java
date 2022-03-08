@@ -9,7 +9,6 @@ import com.yqg.tracing.executorservice.ExecutorServiceMdcTraceIdWrapper;
 import com.yqg.tracing.executorservice.ExecutorServiceTraceContextWrapper;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -70,7 +69,7 @@ public class PipelineTest {
     boolean calcTime = false; // 是否打印流程耗时
     // 子流程获得 result.D
     final Pipeline<?, List<Integer>> getD = new Pipeline<>("get d", calcTime, exe -> getList()) // 获得List
-        .thenBatch("batch", Iterable::forEach, log::error, (e, list, str, s) -> getD((String) str)); // 批量处理List，转化为需要的D
+        .thenBatch("batch", Iterable::forEach, log::error, (e, list, str, s, cb) -> cb.accept(getD((String) str))); // 批量处理List，转化为需要的D
     // 主流程
     Pipeline pipeline = new Pipeline<>("get list", calcTime, executorService -> -1)
         .thenMerge("merge", Result::new, log::error,
@@ -144,7 +143,10 @@ public class PipelineTest {
         .thenMerge("merge", () -> 15, log::error,
             (executorService, s, store, o) -> log.info("a"),
             (executorService, s, store, o) -> log.info("b")
-        );
+        )
+        .then("ex2", (executorService, integer, store) -> {
+          throw new RuntimeException("??");
+        });
     //ValueStore可以贯穿整个流程
     log.info((String) pipeline.blockExecute(EXECUTOR, 15, new ValueStore()));
     //    19:32:52.568 [main] INFO com.yqg.recall.core.utils.PipelineTest - input is 15!
@@ -180,16 +182,22 @@ public class PipelineTest {
     return Integer.parseInt(o);
   }
 
+  void assertEquals(Object a, Object b) {
+    if (!a.equals(b)) {
+      throw new RuntimeException("<" + a + "> not equals <" + b + ">");
+    }
+  }
+
   public void submit(Result result) {
     sleep(15);
-    Assert.assertEquals(result.getA(), "hello");
-    Assert.assertEquals(result.getB(), "world");
-    Assert.assertEquals(result.getC(), ".");
+    assertEquals(result.getA(), "hello");
+    assertEquals(result.getB(), "world");
+    assertEquals(result.getC(), ".");
     List<Integer> list = new ArrayList<>();
     for (int i = 0; i < 15; ++i) {
       list.add(i);
     }
-    Assert.assertEquals(result.getD(), list);
+    assertEquals(result.getD(), list);
   }
 
   @Data

@@ -8,6 +8,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * 流程（管道）
@@ -140,7 +141,7 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
     });
   }
 
-  // 同上，只不过用了builder
+  // 同上，只不过用了builder,支持在MergeFunc中回调式的使用pipeline
   public <NewOut> Pipeline<Out, NewOut> thenMerge(String name,
                                                   Supplier<NewOut> createResult,
                                                   BiConsumer<String, Exception> onException,
@@ -175,9 +176,30 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
           callbackGroup.add(name + ":" + sub, () -> action.batchExec(executorService, param, sub, store))
       );
 
-      callbackGroup.execute(onException, (List<NewOut> list) -> {
-        cb.accept(list);
-      });
+      callbackGroup.execute(onException, cb);
+    });
+  }
+
+  // 同上，支持方法中异步返回执行结果
+  public <Sub, NewOut> Pipeline<Out, List<NewOut>> thenBatch(String name,
+                                                             BiConsumer<Out, Consumer<Sub>> looper,
+                                                             BiConsumer<String, Exception> onException,
+                                                             CallbackBatchFunc<Out, NewOut, Sub> action) {
+    return new Pipeline<>(name, this, this.calcTime, (executorService, param, store, cb) -> {
+      CallbackGroup callbackGroup = new CallbackGroup(executorService);
+      looper.accept(param, sub ->
+          callbackGroup.add(name + ":" + sub, () -> {
+            Box<NewOut> box = new Box<>();
+            action.batchExec(executorService, param, sub, store, result -> {
+              box.setValue(result);
+              callbackGroup.unsafeFinishOneCount();
+            });
+            return box;
+          }, 2)
+      );
+
+      callbackGroup.execute(onException, (List<Box<NewOut>> results) ->
+          cb.accept(results.stream().map(Box::getValue).collect(Collectors.toList())));
     });
   }
 
@@ -242,7 +264,7 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
   private void doAction(ExecutorService executorService, In param, IStore store, Consumer<Out> callback) {
     executorService.submit(() -> {
       if (param == null) {
-        callback.accept(null);
+        executorService.submit(() -> callback.accept(null));
         return;
       }
       long start = System.nanoTime();
@@ -251,7 +273,7 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
         action.execute(executorService, param, store, callback);
       } catch (Exception e) {
         log.error("in pipeline {}, error happened", name, e);
-        callback.accept(null);
+        executorService.submit(() -> callback.accept(null));
       }
 
       if (calcTime) {
