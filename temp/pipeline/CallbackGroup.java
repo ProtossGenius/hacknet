@@ -26,29 +26,44 @@ public class CallbackGroup {
     this.futureInfos = new LinkedList<>();
   }
 
-  public void add(String logInfo, Runnable runnable) {
+  public void add(String logInfo, Runnable runnable, int weight) {
+    count.addAndGet(weight);
     runnables.add(Pair.of(logInfo, () -> {
       try {
         runnable.run();
       } finally {
-        if (count.addAndGet(-1) == 0 && callback != null) {
-          service.submit(() -> callback.accept(futureInfos));
-        }
+        unsafeFinishOneCount();
       }
       return 1;
     }));
   }
 
-  public void add(String logInfo, Callable runnable) {
+  public void add(String logInfo, Runnable runnable) {
+    add(logInfo, runnable, 1);
+  }
+
+  public void add(String logInfo, Callable callable, int weight) {
+    count.addAndGet(weight);
     runnables.add(Pair.of(logInfo, () -> {
       try {
-        return runnable.call();
+        return callable.call();
       } finally {
-        if (count.addAndGet(-1) == 0 && callback != null) {
-          service.submit(() -> callback.accept(futureInfos));
-        }
+        unsafeFinishOneCount();
       }
     }));
+  }
+
+  public void add(String logInfo, Callable callable) {
+    add(logInfo, callable, 1);
+  }
+
+  /**
+   * 手动将待完成次数减1，误用会导致提前回调，应谨慎使用。
+   */
+  public void unsafeFinishOneCount() {
+    if (count.addAndGet(-1) == 0 && callback != null) {
+      service.submit(() -> callback.accept(futureInfos));
+    }
   }
 
   public void execute(Consumer<List<Pair<String, Future>>> callback) {
@@ -57,7 +72,6 @@ public class CallbackGroup {
   }
 
   private void run() {
-    count.set(runnables.size());
     futureInfos = runnables.stream().map(it -> Pair.of(it.getLeft(), (Future) service.submit(it.getRight()))).collect(Collectors.toList());
   }
 

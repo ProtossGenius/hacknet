@@ -9,6 +9,7 @@ import com.yqg.tracing.executorservice.ExecutorServiceMdcTraceIdWrapper;
 import com.yqg.tracing.executorservice.ExecutorServiceTraceContextWrapper;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -23,8 +24,8 @@ public class PipelineTest {
   private static final ExecutorService EXECUTOR = ExecutorServiceTraceContextWrapper.wrap(
       ExecutorServiceMdcTraceIdWrapper.wrap(
           new ThreadPoolExecutor(
-              2,
-              2,
+              1,
+              200,
               0,
               TimeUnit.MILLISECONDS,
               new LinkedBlockingDeque<>(),
@@ -73,11 +74,23 @@ public class PipelineTest {
     // 主流程
     Pipeline pipeline = new Pipeline<>("get list", calcTime, executorService -> -1)
         .thenMerge("merge", Result::new, log::error,
-            (es, list, sto, result) -> result.setA(getA()), // 获得A
-            (es, list, sto, result) -> result.setB(getB()), // 获得B
-            (es, list, sto, result) -> result.setC(getC()), // 获得C
-            (es, list, sto, result) -> result.setD(getD.blockExecute(es, 1, sto)
-            ) // 调用子流程 获得D
+            builder -> builder
+                .and("set A",
+                    (es, list, sto, result) -> result.setA(getA()))
+                .and("get B",
+                    (es, list, sto, result) -> result.setB(getB()))
+                .and("get C",
+                    (es, list, sto, result) -> result.setC(getC()))
+                .and("get D",
+                    (es, list, sto, result, callbackGroup) -> getD.execute(
+                        es,
+                        sto,
+                        nums -> {
+                          result.setD(nums);
+                          callbackGroup.unsafeFinishOneCount();
+                        }
+                    )
+                )
         )
         .then("submit", (e, result, s) -> { // 提交
           this.submit(result);
@@ -128,7 +141,7 @@ public class PipelineTest {
           throw new RuntimeException("hh");
         })
         .then("add", (executorService, str, s) -> str + ((ValueStore) s).getEnd())
-        .thenMerge("merge", ()->15, log::error,
+        .thenMerge("merge", () -> 15, log::error,
             (executorService, s, store, o) -> log.info("a"),
             (executorService, s, store, o) -> log.info("b")
         );
@@ -156,7 +169,7 @@ public class PipelineTest {
     sleep(5);
     List<String> l = new ArrayList<>();
     for (int i = 0; i < 15; i++) {
-      l.add("list " + i);
+      l.add(Integer.toString(i));
     }
 
     return l;
@@ -164,11 +177,19 @@ public class PipelineTest {
 
   public Integer getD(String o) {
     sleep(3);
-    return 1;
+    return Integer.parseInt(o);
   }
 
   public void submit(Result result) {
     sleep(15);
+    Assert.assertEquals(result.getA(), "hello");
+    Assert.assertEquals(result.getB(), "world");
+    Assert.assertEquals(result.getC(), ".");
+    List<Integer> list = new ArrayList<>();
+    for (int i = 0; i < 15; ++i) {
+      list.add(i);
+    }
+    Assert.assertEquals(result.getD(), list);
   }
 
   @Data

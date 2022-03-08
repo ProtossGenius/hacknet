@@ -128,15 +128,28 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
                                                         BiConsumer<String, Exception> onException,
                                                         MergeFunc<Out, NewOut>... mergeFuncs) {
     return new Pipeline<>(name, this, this.calcTime, (executorService, param, store, cb) -> {
-      CallbackGroup callbackGroup = new CallbackGroup(executorService);
       NewOut result = createResult.get();
+      MergeFuncBuilder<Out, NewOut> mergeFuncBuilder = new MergeFuncBuilder<>(executorService, param, result, store);
       int pos = 0;
+
       for (MergeFunc<Out, NewOut> mergeFunc : mergeFuncs) {
-        callbackGroup.add(name + ":" + (pos++), () -> mergeFunc.mergeExec(executorService, param, store, result));
+        mergeFuncBuilder.and(name + ":" + (pos++), mergeFunc);
       }
-      callbackGroup.execute(onException, nth -> {
-        cb.accept(result);
-      });
+
+      mergeFuncBuilder.execute(onException, cb);
+    });
+  }
+
+  // 同上，只不过用了builder
+  public <NewOut> Pipeline<Out, NewOut> thenMerge(String name,
+                                                  Supplier<NewOut> createResult,
+                                                  BiConsumer<String, Exception> onException,
+                                                  Consumer<MergeFuncBuilder<Out, NewOut>> builder) {
+    return new Pipeline<>(name, this, this.calcTime, (executorService, param, store, cb) -> {
+      NewOut result = createResult.get();
+      MergeFuncBuilder<Out, NewOut> mergeFuncBuilder = new MergeFuncBuilder<>(executorService, param, result, store);
+      builder.accept(mergeFuncBuilder);
+      mergeFuncBuilder.execute(onException, cb);
     });
   }
 
@@ -215,34 +228,35 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
   public void execute(ExecutorService executorService, In in, IStore store, Consumer<Out> callback) throws
       RuntimeException {
     if (previous != null) {
-      executorService.submit(() -> previous.execute(executorService, in, store, param -> {
-        doAction(executorService, (In) param, store, callback);
-      }));
+      executorService.submit(() -> previous.execute(executorService, in, store, param ->
+          doAction(executorService, (In) param, store, callback)
+      ));
 
       return;
     }
 
-    executorService.submit(() -> doAction(executorService, (In) in, store, callback));
+    doAction(executorService, (In) in, store, callback);
+
   }
 
   private void doAction(ExecutorService executorService, In param, IStore store, Consumer<Out> callback) {
-    if (param == null) {
-      callback.accept(null);
-      return;
-    }
-    long start = System.nanoTime();
-    if (action != null) {
+    executorService.submit(() -> {
+      if (param == null) {
+        callback.accept(null);
+        return;
+      }
+      long start = System.nanoTime();
+
       try {
         action.execute(executorService, param, store, callback);
       } catch (Exception e) {
         log.error("in pipeline {}, error happened", name, e);
         callback.accept(null);
       }
-    } else {
-      log.error("pipeline {}, action is null", name);
-    }
-    if (calcTime) {
-      log.info("{} pipeline cost time = {} ms", name, (System.nanoTime() - start) / 1e6);
-    }
+
+      if (calcTime) {
+        log.info("{} pipeline cost time = {} ms", name, (System.nanoTime() - start) / 1e6);
+      }
+    });
   }
 }
