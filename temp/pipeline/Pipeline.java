@@ -192,7 +192,7 @@ public class Pipeline<In, Out> implements IPipeline<In, Out> {
             Box<NewOut> box = new Box<>();
             action.batchExec(executorService, param, sub, store, result -> {
               box.setValue(result);
-              callbackGroup.unsafeFinishOneCount();
+              callbackGroup.finishOneCount();
             });
             return box;
           }, 2)

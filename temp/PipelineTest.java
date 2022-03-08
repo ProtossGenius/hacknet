@@ -86,7 +86,7 @@ public class PipelineTest {
                         sto,
                         nums -> {
                           result.setD(nums);
-                          callbackGroup.unsafeFinishOneCount();
+                          callbackGroup.finishOneCount();
                         }
                     )
                 )
@@ -120,17 +120,6 @@ public class PipelineTest {
     testPipeline(pipeline);
     testPipeline(pipeline);
     testPipeline(pipeline);
-    /*
-19:02:59.743 [main] INFO com.yqg.recall.core.utils.PipelineTest - testNormal 's time cost = 88.404896 ms
-19:02:59.822 [main] INFO com.yqg.recall.core.utils.PipelineTest - testNormal 's time cost = 75.38075 ms
-19:02:59.880 [main] INFO com.yqg.recall.core.utils.PipelineTest - testPipeline 's time cost = 48.621298 ms
-19:02:59.916 [main] INFO com.yqg.recall.core.utils.PipelineTest - testPipeline 's time cost = 36.296537 ms
-19:02:59.956 [main] INFO com.yqg.recall.core.utils.PipelineTest - testPipeline 's time cost = 39.804971 ms
-19:02:59.994 [main] INFO com.yqg.recall.core.utils.PipelineTest - testPipeline 's time cost = 38.142821 ms
-19:03:00.037 [main] INFO com.yqg.recall.core.utils.PipelineTest - testPipeline 's time cost = 42.204889 ms
-19:03:00.077 [main] INFO com.yqg.recall.core.utils.PipelineTest - testPipeline 's time cost = 40.475811 ms
-19:03:00.113 [main] INFO com.yqg.recall.core.utils.PipelineTest - testPipeline 's time cost = 36.04097 ms
-     */
   }
 
   @Test

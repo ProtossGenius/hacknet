@@ -32,7 +32,7 @@ public class CallbackGroup {
       try {
         runnable.run();
       } finally {
-        unsafeFinishOneCount();
+        finishOneCount();
       }
       return 1;
     }));
@@ -48,7 +48,7 @@ public class CallbackGroup {
       try {
         return callable.call();
       } finally {
-        unsafeFinishOneCount();
+        finishOneCount();
       }
     }));
   }
@@ -60,7 +60,7 @@ public class CallbackGroup {
   /**
    * 手动将待完成次数减1，误用会导致提前回调，应谨慎使用。
    */
-  public void unsafeFinishOneCount() {
+  public void finishOneCount() {
     if (count.addAndGet(-1) == 0 && callback != null) {
       service.submit(() -> callback.accept(futureInfos));
     }
