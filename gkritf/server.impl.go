@@ -28,13 +28,14 @@ func NewGeekerNetUDPServer() IGeekerNetUDPServer {
 	return (&GeekerNetUDPServer{
 		sessionMgr: &sessionManager{
 			sessionMap: make(map[string]GeekerNodeInfo, 0),
+			infoMap:    make(map[GeekerNodeInfo]string),
 		},
 		running: false,
 	}).init()
 }
 
 // FCommand what will command do.
-type FCommand func(addr *net.UDPAddr, params string) error
+type FCommand func(addr *net.UDPAddr, msg GeekerMsg) error
 
 // GeekerNetUDPServer udp server.
 type GeekerNetUDPServer struct {
@@ -52,27 +53,50 @@ func (g *GeekerNetUDPServer) Close() {
 // Listen listion a local udp port.
 func (g *GeekerNetUDPServer) init() IGeekerNetUDPServer {
 
-	sendmsg := func(addr *net.UDPAddr, msg string) (err error) {
+	sendmsg := func(addr *net.UDPAddr, msg GeekerMsg) (err error) {
 		if _, err = g.listener.WriteToUDP([]byte(msg), addr); err != nil {
 			log.Println("when send response msg : ", msg, ", error is ", err)
 		}
+
+		log.Println("send msg to ", addr, ":", msg)
 
 		return err
 	}
 
 	g.cmdMap = map[string]FCommand{
-		"Search": func(addr *net.UDPAddr, sessionID string) error {
-			return sendmsg(addr, g.Search(sessionID).String())
+		"SearchC": func(addr *net.UDPAddr, info GeekerMsg) (err error) {
+			if searchC, err := NewSearchC(info); err == nil {
+				return sendmsg(addr, SearchS{g.Search(searchC.SessionID)}.Message())
+			}
+
+			return err
+
 		},
-		"Register": func(addr *net.UDPAddr, sessionID string) error {
-			g.sessionMgr.Register(sessionID, GeekerNodeInfo{IP: addr.IP.String(), Port: addr.Port})
+		"RegisterC": func(addr *net.UDPAddr, msg GeekerMsg) (err error) {
+			var registerC RegisterC
+			if registerC, err = NewRegisterC(msg); err != nil {
+				return err
+			}
+			g.sessionMgr.Register(registerC.SessionID, GeekerNodeInfo{IP: addr.IP.String(), Port: addr.Port})
 
 			return sendmsg(addr, "Register:done")
 		},
-		"Notice": func(addr *net.UDPAddr, noticeInfo string) error {
+		"NoticeC": func(addr *net.UDPAddr, noticeInfo GeekerMsg) (err error) {
+			var noticeC NoticeC
+			if noticeC, err = NewNoticeC(noticeInfo); err != nil {
+				return err
+			}
+
+			targetInfo := g.Search(noticeC.TargetSession)
 			nodeInfo := GeekerNodeInfo{IP: addr.IP.String(), Port: addr.Port}
-			sendmsg(nodeInfo.BuildUDPAddr(), "Notice#"+nodeInfo.String()+"#"+noticeInfo)
-			return sendmsg(addr, "Notice:done")
+			if targetInfo.Inited() {
+				sendmsg(targetInfo.BuildUDPAddr(), NoticeS{
+					NodeSessionID: g.sessionMgr.SearchUUID(nodeInfo),
+					NodeInfo:      nodeInfo,
+					ExtraData:     noticeC.ExtraData,
+				}.Message())
+			}
+			return sendmsg(addr, "Notice#"+noticeInfo+":done")
 		},
 	}
 
@@ -84,6 +108,8 @@ func (g *GeekerNetUDPServer) Listen(port int) error {
 	if g.running {
 		return nil // some err?
 	}
+
+	g.sessionMgr.Startup()
 
 	listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4zero, Port: port})
 	if err != nil {
@@ -100,7 +126,10 @@ func (g *GeekerNetUDPServer) Listen(port int) error {
 func (g *GeekerNetUDPServer) parseCmd(addr *net.UDPAddr, cmd string) {
 	fmt.Println("get command ", cmd)
 	list := strings.SplitN(cmd, "#", 2)
-	g.cmdMap[list[0]](addr, list[1])
+	if len(list) != 2 {
+		return
+	}
+	g.cmdMap[list[0]](addr, GeekerMsg(list[1]))
 }
 
 func (g *GeekerNetUDPServer) closeAll() {
@@ -134,18 +163,88 @@ func (g *GeekerNetUDPServer) SetSessionManager(mgr ISessionManager) {
 	g.sessionMgr = mgr
 }
 
+// sessionPair session info pair.
+type sessionPair struct {
+	sessionID string
+	info      GeekerNodeInfo
+}
+
 // sessionManager session manager(not consiter session timeout at all).
 type sessionManager struct {
 	sessionMap map[string]GeekerNodeInfo
+	infoMap    map[GeekerNodeInfo]string
+	put        chan sessionPair
+	del        chan string
+	getInfo    chan string
+	infoResult chan GeekerNodeInfo
+	getSSID    chan GeekerNodeInfo
+	ssidResult chan string
+	running    bool
+}
+
+func (s *sessionManager) SearchUUID(info GeekerNodeInfo) string {
+	s.getSSID <- info
+	return <-s.ssidResult
+}
+
+func (s *sessionManager) Close() {
+	s.running = false
+	close(s.put)
+	close(s.del)
+	close(s.getInfo)
+	close(s.infoResult)
+	close(s.getSSID)
+	close(s.ssidResult)
+}
+
+// Startup start up session manager.
+func (s *sessionManager) Startup() error {
+	s.put = make(chan sessionPair, 1000)
+	s.del = make(chan string, 1000)
+	s.getInfo = make(chan string, 1000)
+	s.infoResult = make(chan GeekerNodeInfo, 1000)
+	s.getSSID = make(chan GeekerNodeInfo, 1000)
+	s.ssidResult = make(chan string, 1000)
+	s.running = true
+	go func() {
+		for s.running {
+			select {
+			case pair := <-s.put:
+				s.sessionMap[pair.sessionID] = pair.info
+				s.infoMap[pair.info] = pair.sessionID
+			case todel := <-s.del:
+				tdInfo := s.sessionMap[todel]
+				delete(s.sessionMap, todel)
+				delete(s.infoMap, tdInfo)
+			case ssid := <-s.getInfo:
+				s.infoResult <- s.sessionMap[ssid]
+			case info := <-s.getSSID:
+				s.ssidResult <- s.infoMap[info]
+			}
+		}
+	}()
+
+	return nil
 }
 
 // Register register a session.
 func (s *sessionManager) Register(sessionID string, info GeekerNodeInfo) error {
-	s.sessionMap[sessionID] = info
+	s.put <- sessionPair{sessionID: sessionID, info: info}
+	if len(s.sessionMap) > 20000 {
+		times := 30
+		for k := range s.sessionMap {
+			s.del <- k
+			times--
+			if times <= 0 {
+				return nil
+			}
+		}
+	}
 	return nil
 }
 
 // Search search a sessionId.
 func (s *sessionManager) Search(sessionID string) GeekerNodeInfo {
-	return s.sessionMap[sessionID]
+	s.getInfo <- sessionID
+	return <-s.infoResult
 }

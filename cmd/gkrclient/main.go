@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/ProtossGenius/hacknet/gkritf"
 )
@@ -17,16 +18,34 @@ func main() {
 	flag.Parse()
 	ch := make(chan int, 0)
 	client := gkritf.NewGeekerNetUDPClient(*session)
-	client.RegisterMsgHandler("Notice", func(addr *net.UDPAddr, params string) error {
-		if params == "done" {
-			return nil
+
+	retry := true
+	client.RegisterMsgHandler("NoticeS", func(addr *net.UDPAddr, params gkritf.GeekerMsg) (err error) {
+		fmt.Println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", params)
+		var noticeS gkritf.NoticeS
+		if noticeS, err = gkritf.NewNoticeS(params); err != nil {
+			return err
 		}
 
-		fmt.Println(params)
-
+		conn := client.GetConn()
+		conn.WriteToUDP([]byte(gkritf.Hole{Msg: "hole ~"}.Message()),
+			noticeS.NodeInfo.BuildUDPAddr())
 		return nil
 	})
+
+	client.RegisterMsgHandler("Hole", func(addr *net.UDPAddr, params gkritf.GeekerMsg) (err error) {
+		retry = false
+		fmt.Println("hole success, another addr = ", addr)
+		return nil
+	})
+
 	client.Connect(*localPort, *remoteIP, *remotePort)
-	client.Send("Notice#" + *targetSession)
+	for retry {
+		client.Send(gkritf.NoticeC{
+			TargetSession: *targetSession,
+			ExtraData:     "",
+		}.Message())
+		time.Sleep(time.Second * 5)
+	}
 	ch <- 1
 }

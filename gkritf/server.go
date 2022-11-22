@@ -40,4 +40,10 @@ type ISessionManager interface {
 	Register(sessionID string, info GeekerNodeInfo) error
 	// Search search a sessionId.
 	Search(sessionID string) GeekerNodeInfo
+	// Startup start up session manager.
+	Startup() error
+
+	Close()
+
+	SearchUUID(info GeekerNodeInfo) string
 }
