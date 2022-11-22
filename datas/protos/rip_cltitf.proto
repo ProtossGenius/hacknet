@@ -5,12 +5,12 @@ syntax = "proto3";
 	package rip_cltitf;
 message CltOperItf_SendForward_Prm {
 	string email = 1;
-	repeated byte data = 2;
+	bytes data = 2;
 }
 message CltOperItf_SendForward_Ret {
 }
 message CltOperItf_OnForward_Prm {
-	repeated byte data = 1;
+	bytes data = 1;
 }
 message CltOperItf_OnForward_Ret {
 }
