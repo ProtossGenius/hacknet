@@ -80,7 +80,12 @@ func (g *GeekerNetUDPClient) startListen() {
 // Send send message to GeekerNetUDPServer.
 func (g *GeekerNetUDPClient) Send(msg GeekerMsg) (err error) {
 	fmt.Println("send message :", msg)
-	if _, err = g.conn.WriteToUDP([]byte(msg), g.remoteAddr); err != nil {
+	conn := g.conn
+	if conn == nil {
+		return
+	}
+
+	if _, err = conn.WriteToUDP([]byte(msg), g.remoteAddr); err != nil {
 		fmt.Println(g.sessionID, " send msg ", msg, ",get error :", err)
 	}
 
