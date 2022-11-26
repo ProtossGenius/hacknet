@@ -62,7 +62,7 @@ func check(err error) {
 
 // hole do hole .
 func doHole(localPort int, targetAddr *net.UDPAddr) {
-	conn, err := net.DialUDP("udp", &net.UDPAddr{IP: net.ParseIP("8.8.8.8"), Port: localPort}, targetAddr)
+	conn, err := net.DialUDP("udp", &net.UDPAddr{IP: net.IPv4zero, Port: localPort}, targetAddr)
 	if err != nil {
 		panic(err)
 	}
