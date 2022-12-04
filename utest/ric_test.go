@@ -3,9 +3,6 @@ package main
 import (
 	"fmt"
 	"testing"
-
-	"github.com/ProtossGenius/hacknet/cltimpl/cltric/clt_rpc_cltitf"
-	"github.com/ProtossGenius/hacknet/cltimpl/svrric/svr_rpc_cltitf"
 )
 
 // TestClient test clientf.
@@ -21,8 +18,4 @@ func (t *TestClient) OnForward(data []byte) {
 }
 
 func TestHelloWorld(t *testing.T) {
-	svr := svr_rpc_cltitf.NewSvrRpcCltOperItf(&TestClient{})
-	svr.OnMessage(nil, nil)
-	clt := clt_rpc_cltitf.NewCltRpcCltOperItf(nil, 0)
-	clt.OnErr(nil)
 }

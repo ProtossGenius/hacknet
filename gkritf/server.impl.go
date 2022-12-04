@@ -98,6 +98,9 @@ func (g *GeekerNetUDPServer) init() IGeekerNetUDPServer {
 			}
 			return sendmsg(addr, "Notice#"+noticeInfo+":done")
 		},
+		"NetInfoC": func(addr *net.UDPAddr, msg GeekerMsg) (err error) {
+			return sendmsg(addr, NetInfoS{IP: addr.IP.String(), Port: addr.Port}.Message())
+		},
 	}
 
 	return g

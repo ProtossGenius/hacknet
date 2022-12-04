@@ -44,6 +44,16 @@ type Hole struct {
 	Msg string
 }
 
+// NetInfoC get client's net info.
+type NetInfoC struct {
+}
+
+// NetInfoS server return client's netInfo.
+type NetInfoS struct {
+	IP   string
+	Port int
+}
+
 /*@SMIST
 setIgnoreInput(true);
 include('parseCmd.js');
@@ -145,5 +155,33 @@ func NewHole(params GeekerMsg) (Hole, error){
 func (c Hole) Message() GeekerMsg {
 	str, _ := smn_data.ValToJson(c)
 	return GeekerMsg("Hole#" + str)
+}
+
+
+// NewNetInfoC GeekerMsg to NetInfoC.
+func NewNetInfoC(params GeekerMsg) (NetInfoC, error){
+	cmd := NetInfoC{}
+	err := smn_data.GetDataFromStr(string(params), &cmd)
+	return cmd, err
+}
+
+// Message NetInfoC to geeker message.
+func (c NetInfoC) Message() GeekerMsg {
+	str, _ := smn_data.ValToJson(c)
+	return GeekerMsg("NetInfoC#" + str)
+}
+
+
+// NewNetInfoS GeekerMsg to NetInfoS.
+func NewNetInfoS(params GeekerMsg) (NetInfoS, error){
+	cmd := NetInfoS{}
+	err := smn_data.GetDataFromStr(string(params), &cmd)
+	return cmd, err
+}
+
+// Message NetInfoS to geeker message.
+func (c NetInfoS) Message() GeekerMsg {
+	str, _ := smn_data.ValToJson(c)
+	return GeekerMsg("NetInfoS#" + str)
 }
 
